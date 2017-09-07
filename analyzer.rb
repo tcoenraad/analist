@@ -4,13 +4,31 @@ require 'optparse'
 require 'ostruct'
 
 require_relative './coercing'
+require_relative './analyze/binary_operator'
+require_relative './analyze/send'
+require_relative './analyze/errors'
 require_relative './ast/def_node'
 require_relative './ast/send_node'
 
 class Analyzer
+  attr_reader :errors
+
+  def initialize
+    @errors = []
+  end
+
   def analyze
-    main_invocations.each do |func|
-      traverse_statements(functions[func.name].body)
+    main_invocations.each { |func| errors << Analyze::Send.new(functions, func).inspect! }
+    main_invocations.each { |func| traverse_statements(functions[func.name].body) }
+
+    errors.compact.each do |error|
+      if error.is_a?(Analyze::TypeError)
+        puts "#{options[:file]}:#{error.line} TypeError"
+      elsif error.is_a?(Analyze::ArgumentError)
+        puts "#{options[:file]}:#{error.line} ArgumentError, expected #{error.expected_number_of_args}, actual: #{error.actual_number_of_args}"
+      end
+      puts source_code.split("\n")[error.line - 1]
+      puts '---'
     end
   end
 
@@ -28,28 +46,14 @@ class Analyzer
     end
   end
 
-  def verify_binary_operation(statement)
-    statement = OpenStruct.new(operator: statement[1], self: statement.first, other: statement.last)
-    return if Coercion.check?(op: statement.operator, type: statement.self.type, other_type: statement.other.type)
-
-    line = statement.self.loc.line
-    puts "#{options[:file]}:#{line} Coerce error"
-    puts source_code.split("\n")[line - 1]
-  end
-
   def traverse_statements(statements)
-    return unless statements && statements.kind_of?(Parser::AST::Node)
+    return unless statements && statements.is_a?(Parser::AST::Node)
 
     case statements.type
     when :begin
-      statements.children.map { |s| traverse_statements(s) }
+      handle_begin(statements)
     when :send
-      first_child = statements.children.first
-      if first_child && self.class.primitive_types.include?(first_child.type)
-        verify_binary_operation(statements.children)
-      else
-        statements.children.map { |s| traverse_statements(s) }
-      end
+      handle_send(statements)
     end
   end
 
@@ -77,6 +81,19 @@ class Analyzer
         end
       end.parse!
       options
+    end
+  end
+
+  def handle_begin(statements)
+    statements.children.map { |s| traverse_statements(s) }
+  end
+
+  def handle_send(statements)
+    first_child = statements.children.first
+    if first_child && self.class.primitive_types.include?(first_child.type)
+      errors << Analyze::BinaryOperator.new(statements.children).inspect!
+    else
+      statements.children.map { |s| traverse_statements(s) }
     end
   end
 end

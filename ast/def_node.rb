@@ -1,6 +1,10 @@
 module AST
   class DefNode
+    extend Forwardable
+
     attr_reader :node
+
+    def_delegator :node, :loc
 
     def initialize(node)
       @node = node
@@ -11,7 +15,7 @@ module AST
     end
 
     def args
-      node.children[1]
+      node.children[1].children
     end
 
     def body
