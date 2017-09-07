@@ -19,7 +19,7 @@ class Analyzer
 
   def analyze
     main_invocations.each { |func| errors << Analyze::Send.new(functions, func).inspect! }
-    main_invocations.each { |func| traverse_statements(functions[func.name].body) }
+    functions.values.each { |func| traverse_statements(func.body) }
 
     errors.compact.each do |error|
       if error.is_a?(Analyze::TypeError)
@@ -27,7 +27,7 @@ class Analyzer
       elsif error.is_a?(Analyze::ArgumentError)
         puts "#{options[:file]}:#{error.line} ArgumentError, expected #{error.expected_number_of_args}, actual: #{error.actual_number_of_args}"
       end
-      puts source_code.split("\n")[error.line - 1]
+      puts '  ' + source_code.split("\n")[error.line - 1]
       puts '---'
     end
   end
