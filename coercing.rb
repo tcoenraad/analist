@@ -1,13 +1,14 @@
 class Coercion
   def self.check?(op:, type:, other_type:)
-    map[op][type].include?(other_type)
+    return false if error_map[op][type].include?(other_type)
+    true
   end
 
-  def self.map
+  def self.error_map
     {
       :+ => {
-        int: [:int],
-        str: [:str]
+        int: [:str],
+        str: [:int]
       }
     }
   end

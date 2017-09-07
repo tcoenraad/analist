@@ -38,7 +38,7 @@ class Analyzer
   end
 
   def traverse_statements(statements)
-    return unless statements
+    return unless statements && statements.kind_of?(Parser::AST::Node)
 
     case statements.type
     when :begin
@@ -48,7 +48,7 @@ class Analyzer
       if first_child && self.class.primitive_types.include?(first_child.type)
         verify_binary_operation(statements.children)
       else
-        traverse_statements(statements.children.last)
+        statements.children.map { |s| traverse_statements(s) }
       end
     end
   end
