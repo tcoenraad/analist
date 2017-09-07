@@ -6,6 +6,10 @@ module Analyze
       @line = line
       @operator = operator
     end
+
+    def to_s
+      "#{line} TypeError"
+    end
   end
 
   class ArgumentError
@@ -15,6 +19,10 @@ module Analyze
       @line = line
       @expected_number_of_args = expected_number_of_args
       @actual_number_of_args = actual_number_of_args
+    end
+
+    def to_s
+      puts "#{line} ArgumentError, expected #{expected_number_of_args}, actual: #{actual_number_of_args}"
     end
   end
 end

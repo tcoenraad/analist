@@ -22,11 +22,7 @@ class Analyzer
     functions.values.each { |func| traverse_statements(func.body) }
 
     errors.compact.each do |error|
-      if error.is_a?(Analyze::TypeError)
-        puts "#{options[:file]}:#{error.line} TypeError"
-      elsif error.is_a?(Analyze::ArgumentError)
-        puts "#{options[:file]}:#{error.line} ArgumentError, expected #{error.expected_number_of_args}, actual: #{error.actual_number_of_args}"
-      end
+      puts "#{options[:file]}:#{error}"
       puts '  ' + source_code.split("\n")[error.line - 1]
       puts '---'
     end
