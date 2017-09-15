@@ -1,4 +1,10 @@
 source 'https://rubygems.org'
 
-gem 'parser'
-gem 'pry'
+group :development do
+  gem 'guard'
+  gem 'guard-rspec', require: false
+  gem 'parser'
+  gem 'pry'
+  gem 'rspec'
+  gem 'terminal-notifier-guard'
+end

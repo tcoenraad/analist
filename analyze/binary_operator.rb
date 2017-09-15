@@ -20,11 +20,11 @@ module Analyze
       statements.last
     end
 
-    def inspect!
-      return if Coercion.check?(operator: operator, type: left.type, other_type: right.type)
+    def errors
+      return if Analyze::Coerce.check?(operator: operator, type: left.type, other_type: right.type)
 
       line = left.loc.line
-      Analyze::TypeError.new(line, operator: operator)
+      [Analyze::TypeError.new(line, operator: operator)]
     end
   end
 end
