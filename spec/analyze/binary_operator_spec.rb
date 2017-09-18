@@ -1,5 +1,5 @@
 RSpec.describe Analyze::BinaryOperator do
-  subject(:binary_operator) { described_class.new(ast.children) }
+  subject(:binary_operator) { described_class.new(ast.children, {}) }
 
   describe '#operator' do
     let(:ast) { CommonHelpers.parse("'a' + 1") }

@@ -1,17 +1,16 @@
+require_relative './constants'
+
 module Analyze
   class Method
-    attr_reader :method
+    attr_reader :method, :type_map
 
     def initialize(method)
       @method = method
     end
 
     def errors
+      @type_map = {}
       errors_for_statements(method.body).flatten.compact
-    end
-
-    def self.primitive_types
-      %i[int str]
     end
 
     private
@@ -24,20 +23,31 @@ module Analyze
         handle_begin(statements)
       when :send
         handle_send(statements)
+      when :lvasgn
+        handle_local_variable_assignment(statements)
       end
     end
 
     def handle_begin(statements)
-      statements.children.map { |s| errors_for_statements(s) }
+      statements.children.map do |s|
+        errors_for_statements(s)
+      end
     end
 
     def handle_send(statements)
       first_child = statements.children.first
-      if first_child && self.class.primitive_types.include?(first_child.type)
-        Analyze::BinaryOperator.new(statements.children).errors
+      if first_child && Constants.primitive_types.include?(first_child.type)
+        Analyze::BinaryOperator.new(statements.children, type_map).errors
       else
         statements.children.map { |s| errors_for_statements(s) }
       end
+    end
+
+    def handle_local_variable_assignment(statements)
+      name = statements.children[0]
+      type = statements.children[1].type
+      type_map[name] = type
+      nil
     end
   end
 end
