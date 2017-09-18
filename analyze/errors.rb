@@ -22,8 +22,8 @@ module Analyze
     end
 
     def to_s
-      puts "#{line} ArgumentError, expected #{expected_number_of_args}, "\
-           "actual: #{actual_number_of_args}"
+      "#{line} ArgumentError, expected #{expected_number_of_args}, "\
+        "actual: #{actual_number_of_args}"
     end
   end
 end

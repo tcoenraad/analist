@@ -1,5 +1,6 @@
 Analysis
 ========
+[![Build Status](https://travis-ci.com/tcoenraad/analist.svg?token=VRpTPqQimpVvBRMqjtwB&branch=master)](https://travis-ci.com/tcoenraad/analist)
 
 ## Usage
 ```bash

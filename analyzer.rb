@@ -21,24 +21,12 @@ class Analyzer
     main_invocations.each { |func| errors << Analyze::Send.new(functions, func).errors }
     functions.values.each { |func| traverse_statements(func.body) }
 
-    errors.flatten.each do |error|
-      puts "#{options[:file]}:#{error}"
-      puts '  ' + source_code.split("\n")[error.line - 1]
-      puts '---'
-    end
+    print_errors
   end
 
   def main_invocations
     parser.children.select { |c| c.type == :send }.map do |i|
       AST::SendNode.new(i)
-    end
-  end
-
-  def functions
-    parser.children.select { |c| c.type == :def }.each_with_object({}) do |f, h|
-      def_node = AST::DefNode.new(f)
-      h[def_node.name] = def_node
-      h
     end
   end
 
@@ -50,6 +38,22 @@ class Analyzer
       handle_begin(statements)
     when :send
       handle_send(statements)
+    end
+  end
+
+  def functions
+    parser.children.select { |c| c.type == :def }.each_with_object({}) do |f, h|
+      def_node = AST::DefNode.new(f)
+      h[def_node.name] = def_node
+      h
+    end
+  end
+
+  def print_errors
+    errors.flatten.each do |error|
+      puts "#{options[:file]}:#{error}"
+      puts '  ' + source_code.split("\n")[error.line - 1]
+      puts '---'
     end
   end
 
