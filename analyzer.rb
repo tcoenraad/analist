@@ -11,17 +11,13 @@ require_relative './ast/def_node'
 require_relative './ast/send_node'
 
 class Analyzer
-  attr_reader :errors
-
-  def initialize
-    @errors = []
-  end
-
   def analyze
-    main_invocations.each { |func| errors << Analyze::Send.new(functions, func).errors }
-    functions.values.each { |func| traverse_statements(func.body) }
+    errors = []
 
-    print_errors
+    errors << main_invocations.map { |func| Analyze::Send.new(functions, func).errors }
+    errors << functions.values.map { |func| traverse_statements(func.body) }
+
+    print_errors(errors.flatten.compact)
   end
 
   def main_invocations
@@ -49,7 +45,7 @@ class Analyzer
     end
   end
 
-  def print_errors
+  def print_errors(errors)
     errors.flatten.each do |error|
       puts "#{options[:file]}:#{error}"
       puts '  ' + source_code.split("\n")[error.line - 1]
@@ -91,7 +87,7 @@ class Analyzer
   def handle_send(statements)
     first_child = statements.children.first
     if first_child && self.class.primitive_types.include?(first_child.type)
-      errors << Analyze::BinaryOperator.new(statements.children).errors
+      Analyze::BinaryOperator.new(statements.children).errors
     else
       statements.children.map { |s| traverse_statements(s) }
     end
