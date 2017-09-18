@@ -5,6 +5,7 @@ require 'ostruct'
 
 require_relative './analyze/coerce'
 require_relative './analyze/binary_operator'
+require_relative './analyze/method'
 require_relative './analyze/send'
 require_relative './analyze/errors'
 require_relative './ast/def_node'
@@ -15,7 +16,7 @@ class Analyzer
     errors = []
 
     errors << main_invocations.map { |func| Analyze::Send.new(functions, func).errors }
-    errors << functions.values.map { |func| traverse_statements(func.body) }
+    errors << functions.values.map { |func| Analyze::Method.new(func).errors }
 
     print_errors(errors.flatten.compact)
   end
@@ -23,17 +24,6 @@ class Analyzer
   def main_invocations
     parser.children.select { |c| c.type == :send }.map do |i|
       AST::SendNode.new(i)
-    end
-  end
-
-  def traverse_statements(statements)
-    return unless statements && statements.is_a?(Parser::AST::Node)
-
-    case statements.type
-    when :begin
-      handle_begin(statements)
-    when :send
-      handle_send(statements)
     end
   end
 
@@ -51,10 +41,6 @@ class Analyzer
       puts '  ' + source_code.split("\n")[error.line - 1]
       puts '---'
     end
-  end
-
-  def self.primitive_types
-    %i[int str]
   end
 
   private
@@ -77,19 +63,6 @@ class Analyzer
         end
       end.parse!
       options
-    end
-  end
-
-  def handle_begin(statements)
-    statements.children.map { |s| traverse_statements(s) }
-  end
-
-  def handle_send(statements)
-    first_child = statements.children.first
-    if first_child && self.class.primitive_types.include?(first_child.type)
-      Analyze::BinaryOperator.new(statements.children).errors
-    else
-      statements.children.map { |s| traverse_statements(s) }
     end
   end
 end
