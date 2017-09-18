@@ -8,9 +8,11 @@ module Analyze
     end
 
     def errors
-      return if functions[func.name].args.count == func.args.count
+      return [] if functions[func.name].args.count == func.args.count
       line = func.loc.line
-      [Analyze::ArgumentError.new(line, actual_number_of_args: func.args.count, expected_number_of_args: functions[func.name].args.count)]
+      [Analyze::ArgumentError.new(line,
+                                  actual_number_of_args: func.args.count,
+                                  expected_number_of_args: functions[func.name].args.count)]
     end
   end
 end

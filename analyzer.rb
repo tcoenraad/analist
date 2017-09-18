@@ -3,7 +3,7 @@ require 'parser/ruby24'
 require 'optparse'
 require 'ostruct'
 
-require_relative './coercing'
+require_relative './analyze/coerce'
 require_relative './analyze/binary_operator'
 require_relative './analyze/send'
 require_relative './analyze/errors'
@@ -18,10 +18,10 @@ class Analyzer
   end
 
   def analyze
-    main_invocations.each { |func| errors << Analyze::Send.new(functions, func).inspect! }
+    main_invocations.each { |func| errors << Analyze::Send.new(functions, func).errors }
     functions.values.each { |func| traverse_statements(func.body) }
 
-    errors.compact.each do |error|
+    errors.flatten.each do |error|
       puts "#{options[:file]}:#{error}"
       puts '  ' + source_code.split("\n")[error.line - 1]
       puts '---'
@@ -87,7 +87,7 @@ class Analyzer
   def handle_send(statements)
     first_child = statements.children.first
     if first_child && self.class.primitive_types.include?(first_child.type)
-      errors << Analyze::BinaryOperator.new(statements.children).inspect!
+      errors << Analyze::BinaryOperator.new(statements.children).errors
     else
       statements.children.map { |s| traverse_statements(s) }
     end

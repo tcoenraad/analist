@@ -21,7 +21,11 @@ module Analyze
     end
 
     def errors
-      return if Analyze::Coerce.check?(operator: operator, type: left.type, other_type: right.type)
+      return [] if Analyze::Coerce.check?(
+        operator: operator,
+        type: left.type,
+        other_type: right.type
+      )
 
       line = left.loc.line
       [Analyze::TypeError.new(line, operator: operator)]
