@@ -12,7 +12,7 @@ require_relative './ast/def_node'
 require_relative './ast/send_node'
 
 class Analyzer
-  def analyze # rubocop:disable Metric/AbcSize
+  def analyze # rubocop:disable Metrics/AbcSize
     errors = []
 
     errors << main_invocations.map { |func| Analyze::Send.new(functions, func).errors }
