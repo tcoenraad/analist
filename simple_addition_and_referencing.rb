@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def bad_func
   puts 'a' + 1
   puts 'a' + 1 + 1

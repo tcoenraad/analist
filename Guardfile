@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 guard :rspec, cmd: 'bundle exec rspec' do
   # RSpec files
   watch('spec/spec_helper.rb') { 'spec' }

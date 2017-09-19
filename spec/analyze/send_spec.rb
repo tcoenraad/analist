@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Analyze::Send do
   describe '#errors' do
     subject(:send) { described_class.new(functions, func) }

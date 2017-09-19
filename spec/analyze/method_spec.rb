@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Analyze::Method do
   describe '#errors' do
     subject(:function) { described_class.new(AST::DefNode.new(ast)) }

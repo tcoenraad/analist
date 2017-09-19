@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Analyze
   class Send
     attr_reader :functions, :func

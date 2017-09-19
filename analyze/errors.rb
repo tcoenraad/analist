@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Analyze
   class TypeError
     attr_reader :line

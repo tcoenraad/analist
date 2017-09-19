@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Analyze
   class Coerce
     def self.check?(operator:, type:, other_type:)

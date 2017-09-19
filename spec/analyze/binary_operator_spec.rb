@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Analyze::BinaryOperator do
   subject(:binary_operator) { described_class.new(ast.children, {}) }
 
