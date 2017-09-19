@@ -25,14 +25,18 @@ module Analyze
     end
 
     def errors
+      left_type = resolve_node_to_type(left)
+      right_type = resolve_node_to_type(right)
+
       return [] if Analyze::Coerce.check?(
         operator: operator,
-        type: resolve_node_to_type(left),
-        other_type: resolve_node_to_type(right)
+        left_type: left_type,
+        right_type: right_type
       )
 
       line = left.loc.line
-      [Analyze::TypeError.new(line, operator: operator)]
+      [Analyze::TypeError.new(line, operator: operator,
+                                    left_type: left_type, right_type: right_type)]
     end
 
     private

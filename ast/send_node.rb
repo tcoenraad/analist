@@ -12,6 +12,10 @@ module AST
       @node = node
     end
 
+    def callee
+      node.children[0]
+    end
+
     def args
       node.children.drop(2)
     end

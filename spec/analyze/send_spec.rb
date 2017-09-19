@@ -1,32 +1,48 @@
 # frozen_string_literal: true
 
 RSpec.describe Analyze::Send do
-  describe '#errors' do
-    subject(:send) { described_class.new(functions, func) }
+  subject(:send) { described_class.new(functions, func) }
 
+  describe '#no_method_error' do
+    let(:functions) { {} }
+
+    context 'when invoking a non-existing methods' do
+      let(:func) { AST::SendNode.new(CommonHelpers.parse('{} << 1')) }
+
+      it { expect(send.no_method_error).to be_kind_of Analyze::NoMethodError }
+    end
+
+    context 'when invoking an existing method' do
+      let(:func) { AST::SendNode.new(CommonHelpers.parse('[] << 1')) }
+
+      it { expect(send.no_method_error).to be_nil }
+    end
+  end
+
+  describe '#argument_error' do
     let(:functions) do
       {
         method: AST::DefNode.new(CommonHelpers.parse('def method(arg1, arg2); end'))
       }
     end
 
-    describe 'with no args' do
+    context 'with no args' do
       let(:func) { AST::SendNode.new(CommonHelpers.parse('method')) }
 
-      it { expect(send.errors.first).to be_kind_of Analyze::ArgumentError }
-      it { expect(send.errors.first.expected_number_of_args).to be 2 }
-      it { expect(send.errors.first.actual_number_of_args).to be 0 }
+      it { expect(send.argument_error).to be_kind_of Analyze::ArgumentError }
+      it { expect(send.argument_error.expected_number_of_args).to be 2 }
+      it { expect(send.argument_error.actual_number_of_args).to be 0 }
     end
 
-    describe 'with one arg' do
+    context 'with one arg' do
       let(:func) { AST::SendNode.new(CommonHelpers.parse('method(arg1)')) }
 
-      it { expect(send.errors.first).to be_kind_of Analyze::ArgumentError }
-      it { expect(send.errors.first.expected_number_of_args).to be 2 }
-      it { expect(send.errors.first.actual_number_of_args).to be 1 }
+      it { expect(send.argument_error).to be_kind_of Analyze::ArgumentError }
+      it { expect(send.argument_error.expected_number_of_args).to be 2 }
+      it { expect(send.argument_error.actual_number_of_args).to be 1 }
     end
 
-    describe 'with two args' do
+    context 'with two args' do
       let(:func) { AST::SendNode.new(CommonHelpers.parse('method(arg1, arg2)')) }
 
       it { expect(send.errors).to be_empty }

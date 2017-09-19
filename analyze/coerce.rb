@@ -2,9 +2,9 @@
 
 module Analyze
   class Coerce
-    def self.check?(operator:, type:, other_type:)
-      return false if error_map[aliases_map[operator]][type] &&
-                      error_map[operator][type].include?(other_type)
+    def self.check?(operator:, left_type:, right_type:)
+      return false if error_map[aliases_map[operator]][left_type] &&
+                      error_map[operator][left_type].include?(right_type)
       true
     end
 
