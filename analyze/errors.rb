@@ -16,22 +16,21 @@ module Analyze
   end
 
   class TypeError
-    attr_reader :line
+    attr_reader :line, :left_type, :right_type
 
-    def initialize(line, left_type:, right_type:, operator:)
+    def initialize(line, left_type:, right_type:)
       @line = line
       @left_type = left_type
       @right_type = right_type
-      @operator = operator
     end
 
     def to_s
-      "#{line} TypeError: #{@left_type} cannot be coerced into #{@right_type}"
+      "#{line} TypeError: #{left_type} cannot be coerced into #{right_type}"
     end
   end
 
   class ArgumentError
-    attr_reader :line
+    attr_reader :line, :expected_number_of_args, :actual_number_of_args
 
     def initialize(line, expected_number_of_args:, actual_number_of_args:)
       @line = line
@@ -40,8 +39,8 @@ module Analyze
     end
 
     def to_s
-      "#{line} ArgumentError, expected #{@expected_number_of_args}, "\
-        "actual: #{@actual_number_of_args}"
+      "#{line} ArgumentError, expected #{expected_number_of_args}, "\
+        "actual: #{actual_number_of_args}"
     end
   end
 end

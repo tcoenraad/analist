@@ -35,8 +35,7 @@ module Analyze
       )
 
       line = left.loc.line
-      [Analyze::TypeError.new(line, operator: operator,
-                                    left_type: left_type, right_type: right_type)]
+      [Analyze::TypeError.new(line, left_type: left_type, right_type: right_type)]
     end
 
     private
