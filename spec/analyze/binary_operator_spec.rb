@@ -22,8 +22,15 @@ RSpec.describe Analyze::BinaryOperator do
   end
 
   describe '#errors' do
-    context 'with coerce error' do
+    context 'with simple coerce error' do
       let(:ast) { CommonHelpers.parse("'a' + 1") }
+
+      it { expect(binary_operator.errors.first).to be_kind_of Analyze::TypeError }
+      it { expect(binary_operator.errors.first.line).to be 1 }
+    end
+
+    context 'with higher level coerce error' do
+      let(:ast) { CommonHelpers.parse('{} + []') }
 
       it { expect(binary_operator.errors.first).to be_kind_of Analyze::TypeError }
       it { expect(binary_operator.errors.first.line).to be 1 }

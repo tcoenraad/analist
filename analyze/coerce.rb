@@ -3,7 +3,8 @@
 module Analyze
   class Coerce
     def self.check?(operator:, type:, other_type:)
-      return false if error_map[operator][type].include?(other_type)
+      return false if error_map[aliases_map[operator]][type] &&
+                      error_map[operator][type].include?(other_type)
       true
     end
 
@@ -11,8 +12,19 @@ module Analyze
       {
         :+ => {
           int: [:str],
-          str: [:int]
+          str: [:int],
+          hash: [:array],
+          array: [:hash]
         }
+      }
+    end
+
+    def self.aliases_map
+      {
+        :+ => :+,
+        :- => :+,
+        :* => :+,
+        :/ => :+
       }
     end
   end
