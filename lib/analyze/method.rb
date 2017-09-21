@@ -4,15 +4,15 @@ require_relative './constants'
 
 module Analyze
   class Method
-    attr_reader :method, :type_map
+    attr_reader :def_node, :type_map
 
-    def initialize(method)
-      @method = method
+    def initialize(def_node)
+      @def_node = def_node
     end
 
     def errors
       @type_map = {}
-      errors_for_statements(method.body).flatten.compact
+      errors_for_statements(def_node.body).flatten.compact
     end
 
     private

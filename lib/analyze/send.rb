@@ -2,15 +2,15 @@
 
 module Analyze
   class Send
-    attr_reader :functions, :func
+    attr_reader :functions, :send_node
 
-    def initialize(functions, func)
+    def initialize(functions, send_node)
       @functions = functions
-      @func = func
+      @send_node = send_node
     end
 
     def line
-      func.loc.line
+      send_node.loc.line
     end
 
     def errors
@@ -25,7 +25,9 @@ module Analyze
     end
 
     def no_method_error
-      Analyze::NoMethodError.new(line, object: func.callee, method: func.name) if method_missing?
+      if method_missing? # rubocop:disable Style/GuardClause
+        Analyze::NoMethodError.new(line, object: send_node.callee, method: send_node.name)
+      end
     end
 
     def self.method_missing_map
@@ -37,19 +39,19 @@ module Analyze
     private
 
     def argument_error?
-      functions[func.name] && actual_number_of_args != expected_number_of_args
+      functions[send_node.name] && actual_number_of_args != expected_number_of_args
     end
 
     def method_missing?
-      Send.method_missing_map.fetch(func.callee&.type, []).include?(func.name)
+      Send.method_missing_map.fetch(send_node.callee&.type, []).include?(send_node.name)
     end
 
     def expected_number_of_args
-      functions[func.name].args.count
+      functions[send_node.name].args.count
     end
 
     def actual_number_of_args
-      func.args.count
+      send_node.args.count
     end
   end
 end

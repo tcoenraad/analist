@@ -3,7 +3,7 @@
 RSpec.describe SQL::CreateStatement do
   subject(:create_statement) { described_class.new(tree.first['CreateStmt']) }
 
-  let(:tree) { CommonHelpers.parse_sql('./spec/support/sql/create.sql') }
+  let(:tree) { CommonHelpers.parse_sql('./spec/support/sql/mail_aliases.sql') }
 
   describe '#table_name' do
     it { expect(create_statement.table_name).to eq 'mail_aliases' }

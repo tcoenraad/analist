@@ -17,8 +17,8 @@ class Analyzer
   def analyze # rubocop:disable Metrics/AbcSize
     errors = []
 
-    errors << main_invocations.map { |func| Analyze::Send.new(functions, func).errors }
-    errors << functions.values.map { |func| Analyze::Method.new(func).errors }
+    errors << main_invocations.map { |send_node| Analyze::Send.new(functions, send_node).errors }
+    errors << functions.values.map { |def_node| Analyze::Method.new(def_node).errors }
 
     print_errors(errors.flatten.compact)
   end
