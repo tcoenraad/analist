@@ -4,13 +4,13 @@ require 'pry'
 require 'parser/ruby24'
 require 'pg_query'
 
-require_relative '../lib/analyze/binary_operator'
-require_relative '../lib/analyze/coerce'
-require_relative '../lib/analyze/method'
-require_relative '../lib/analyze/send'
-require_relative '../lib/ast/def_node'
-require_relative '../lib/ast/send_node'
-require_relative '../lib/sql/create_statement'
+require_relative '../lib/analist/analyze/binary_operator'
+require_relative '../lib/analist/analyze/coerce'
+require_relative '../lib/analist/analyze/method'
+require_relative '../lib/analist/analyze/send'
+require_relative '../lib/analist/ast/def_node'
+require_relative '../lib/analist/ast/send_node'
+require_relative '../lib/analist/sql/create_statement'
 
 class CommonHelpers
   def self.parse(args)

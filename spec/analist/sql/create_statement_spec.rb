@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SQL::CreateStatement do
+RSpec.describe Analist::SQL::CreateStatement do
   subject(:create_statement) { described_class.new(tree.first['CreateStmt']) }
 
   let(:tree) { CommonHelpers.parse_sql('./spec/support/sql/mail_aliases.sql') }

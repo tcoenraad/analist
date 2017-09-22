@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Analyze::Coerce do
+RSpec.describe Analist::Analyze::Coerce do
   describe '.check?' do
     describe 'when checking a bare operator' do
       it do
