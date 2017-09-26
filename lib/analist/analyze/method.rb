@@ -5,7 +5,7 @@ require_relative './constants'
 module Analist
   module Analyze
     class Method
-      attr_reader :def_node, :type_map
+      attr_reader :def_node
 
       def initialize(def_node)
         @def_node = def_node
@@ -40,7 +40,7 @@ module Analist
       def handle_send(statements)
         first_child = statements.children.first
         if first_child && Constants.primitive_types.include?(first_child.type)
-          Analyze::BinaryOperator.new(statements.children, type_map).errors
+          Analyze::BinaryOperator.new(statements.children, @type_map).errors
         else
           statements.children.map { |s| errors_for_statements(s) }
         end
@@ -49,7 +49,7 @@ module Analist
       def handle_local_variable_assignment(statements)
         name = statements.children[0]
         type = statements.children[1].type
-        type_map[name] = type
+        @type_map[name] = type
         nil
       end
     end
