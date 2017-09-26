@@ -7,14 +7,14 @@ module Analist
     class SendNode
       extend Forwardable
 
-      attr_reader :node, :receiver, :method, :arg
+      attr_reader :node, :receiver, :method, :args
 
       def_delegator :node, :loc
 
       def initialize(node)
         @node = node
 
-        @receiver, @method, @arg = node.children
+        @receiver, @method, *@args = node.children
       end
 
       def parent

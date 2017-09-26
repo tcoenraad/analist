@@ -12,7 +12,7 @@ module Analist
       end
 
       def to_s
-        "#{line} NoMethodError: undefined method `#{@method}' for #{@object}'"
+        "#{line} NoMethodError: undefined method `#{@method}' for #{@object}"
       end
     end
 
