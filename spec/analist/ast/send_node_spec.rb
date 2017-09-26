@@ -9,7 +9,7 @@ RSpec.describe Analist::AST::SendNode do
 
       it { expect(send_node.method).to eq :+ }
       it { expect(send_node.receiver).to eq AST::Node.new(:int, [1]) }
-      it { expect(send_node.arg).to eq AST::Node.new(:int, [2]) }
+      it { expect(send_node.args).to eq [AST::Node.new(:int, [2])] }
     end
 
     context 'with a extended simple expression' do
@@ -21,7 +21,7 @@ RSpec.describe Analist::AST::SendNode do
                                                        [AST::Node.new(:int, [1]), :+,
                                                         AST::Node.new(:int, [2])])
       end
-      it { expect(send_node.arg).to eq AST::Node.new(:int, [3]) }
+      it { expect(send_node.args).to eq [AST::Node.new(:int, [3])] }
     end
 
     context 'with a method call' do
@@ -29,7 +29,7 @@ RSpec.describe Analist::AST::SendNode do
 
       it { expect(send_node.receiver).to eq(AST::Node.new(:const, [nil, :User])) }
       it { expect(send_node.method).to eq :first }
-      it { expect(send_node.arg).to be_nil }
+      it { expect(send_node.args).to eq [] }
     end
 
     context 'with a method call with argument' do
@@ -38,11 +38,11 @@ RSpec.describe Analist::AST::SendNode do
       it { expect(send_node.receiver).to eq(AST::Node.new(:const, [nil, :User])) }
       it { expect(send_node.method).to eq :where }
       it do # rubocop:disable RSpec/ExampleLength
-        expect(send_node.arg).to eq(
-          AST::Node.new(:hash,
-                        [AST::Node.new(
-                          :pair, [AST::Node.new(:sym, [:id]), AST::Node.new(:int, [1])]
-                        )])
+        expect(send_node.args).to eq(
+          [AST::Node.new(:hash,
+                         [AST::Node.new(
+                           :pair, [AST::Node.new(:sym, [:id]), AST::Node.new(:int, [1])]
+                         )])]
         )
       end
     end
@@ -56,7 +56,16 @@ RSpec.describe Analist::AST::SendNode do
         )
       end
       it { expect(send_node.method).to eq :id }
-      it { expect(send_node.arg).to be_nil }
+      it { expect(send_node.args).to eq [] }
+    end
+  end
+
+  describe '#args' do
+    let(:func) { CommonHelpers.parse('method(arg1, arg2)') }
+
+    it do
+      expect(send_node.args).to eq [AST::Node.new(:send, [nil, :arg1]),
+                                    AST::Node.new(:send, [nil, :arg2])]
     end
   end
 

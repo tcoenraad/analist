@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Analist::Analyze::Send do
-  subject(:send) { described_class.new(functions, func) }
+  subject(:send) { described_class.new(func, functions: functions) }
 
   describe '#no_method_error' do
     let(:functions) { {} }
