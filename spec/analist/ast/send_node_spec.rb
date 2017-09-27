@@ -58,25 +58,13 @@ RSpec.describe Analist::AST::SendNode do
       it { expect(send_node.method).to eq :id }
       it { expect(send_node.args).to eq [] }
     end
-  end
 
-  describe '#args' do
-    let(:func) { CommonHelpers.parse('method(arg1, arg2)') }
-
-    it do
-      expect(send_node.args).to eq [AST::Node.new(:send, [nil, :arg1]),
-                                    AST::Node.new(:send, [nil, :arg2])]
-    end
-  end
-
-  describe '#parent' do
-    context 'with a chained method call' do
-      let(:func) { CommonHelpers.parse('User.first.id') }
+    context 'with multiple arguments' do
+      let(:func) { CommonHelpers.parse('method(arg1, arg2)') }
 
       it do
-        expect(send_node.parent.receiver).to eq(
-          AST::Node.new(:const, [nil, :User])
-        )
+        expect(send_node.args).to eq [AST::Node.new(:send, [nil, :arg1]),
+                                      AST::Node.new(:send, [nil, :arg2])]
       end
     end
   end

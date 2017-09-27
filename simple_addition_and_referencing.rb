@@ -11,7 +11,6 @@ def good_func
   puts 'a' + 'a' + 'a'
 end
 
-bad_func
 bad_func_with_arg
 bad_func_with_arg(true)
 

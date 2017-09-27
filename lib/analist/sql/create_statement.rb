@@ -12,7 +12,7 @@ module Analist
       end
 
       def columns
-        column_defs.each_with_object({}) do |s, h|
+        @columns ||= column_defs.each_with_object({}) do |s, h|
           h[s['ColumnDef']['colname']] =
             s['ColumnDef']['typeName']['TypeName']['names'].map do |type|
               type['String']['str']
@@ -22,13 +22,15 @@ module Analist
       end
 
       def find_type_for(column)
-        self.class.normalize_type(columns[column].last)
+        self.class.sql_type_to_ast_type_map[columns[column]&.last]
       end
 
-      def self.normalize_type(type)
+      def self.sql_type_to_ast_type_map
         {
-          'int8' => :int
-        }[type]
+          'int4' => :int,
+          'int8' => :int,
+          'varchar' => :str
+        }
       end
 
       private

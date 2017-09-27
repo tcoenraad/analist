@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe Analist::Analyze::Send do
-  subject(:send) { described_class.new(func, functions: functions) }
+  subject(:send) do
+    described_class.new(func, var_to_type_map: var_to_type_map, schema: schema)
+  end
+
+  let(:var_to_type_map) { {} }
+  let(:schema) { nil }
 
   describe '#no_method_error' do
-    let(:functions) { {} }
-
     context 'when invoking a non-existing methods' do
       let(:func) { Analist::AST::SendNode.new(CommonHelpers.parse('{} << 1')) }
 
@@ -17,10 +20,19 @@ RSpec.describe Analist::Analyze::Send do
 
       it { expect(send.no_method_error).to be_nil }
     end
+
+    context 'when invoking an ActiveRecord method' do
+      let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+      let(:func) do
+        Analist::AST::SendNode.new(CommonHelpers.parse('User.first.id + "blaat"'))
+      end
+
+      it { expect(send.type_error).to be_kind_of Analist::Analyze::TypeError }
+    end
   end
 
   describe '#argument_error' do
-    let(:functions) do
+    let(:var_to_type_map) do
       {
         method: Analist::AST::DefNode.new(CommonHelpers.parse('def method(arg1, arg2); end'))
       }

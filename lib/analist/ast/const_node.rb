@@ -2,16 +2,20 @@
 
 module Analist
   module AST
-    class DefNode
+    class ConstNode
       extend Forwardable
 
-      attr_reader :node, :name, :args, :body
+      attr_reader :node
 
       def_delegator :node, :loc
 
       def initialize(node)
         @node = node
-        @name, @args, @body = node.children
+        _, @klass = node.children
+      end
+
+      def active_record_model_name
+        @klass.to_s.downcase
       end
     end
   end

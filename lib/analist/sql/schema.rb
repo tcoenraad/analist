@@ -7,15 +7,23 @@ require_relative './create_statement'
 module Analist
   module SQL
     class Schema
+      extend Forwardable
+
       attr_reader :schema
+
+      def_delegators :schema, :table_name, :columns, :find_type_for, :[]
 
       def initialize(schema)
         @schema = schema
       end
 
+      def table_names
+        schema.keys
+      end
+
       def self.read_from_file(filename)
         tree = parse_sql(filename)
-        SQL::Schema.new(create_statements(tree))
+        new(create_statements(tree))
       end
 
       def self.parse_sql(filename)

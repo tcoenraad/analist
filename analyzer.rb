@@ -6,7 +6,6 @@ require 'optparse'
 require 'ostruct'
 
 require_relative './lib/analist/analyze/coerce'
-require_relative './lib/analist/analyze/binary_operator'
 require_relative './lib/analist/analyze/method'
 require_relative './lib/analist/analyze/send'
 require_relative './lib/analist/analyze/errors'
@@ -15,11 +14,11 @@ require_relative './lib/analist/ast/send_node'
 require_relative './lib/analist/sql/schema'
 
 class Analyzer
-  def analyze # rubocop:disable Metrics/AbcSize
+  def analyze
     errors = []
 
     errors << main_invocations.map do |send_node|
-      Analist::Analyze::Send.new(send_node, functions: functions).errors
+      Analist::Analyze::Send.new(send_node).errors
     end
     errors << functions.values.map { |def_node| Analist::Analyze::Method.new(def_node).errors }
 

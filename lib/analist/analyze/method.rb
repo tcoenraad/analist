@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative './constants'
+require_relative './send'
+require_relative '../ast/send_node'
 
 module Analist
   module Analyze
@@ -12,44 +14,36 @@ module Analist
       end
 
       def errors
-        @type_map = {}
-        errors_for_statements(def_node.body).flatten.compact
+        @var_to_type_map = {}
+        errors_for_node(def_node.body).flatten.compact
       end
 
       private
 
-      def errors_for_statements(statements)
-        return unless statements && statements.is_a?(Parser::AST::Node)
-
-        case statements.type
+      def errors_for_node(node)
+        case node.type
         when :begin
-          handle_begin(statements)
+          handle_begin(node)
         when :send
-          handle_send(statements)
+          handle_send(node)
         when :lvasgn
-          handle_local_variable_assignment(statements)
+          handle_local_variable_assignment(node)
         end
       end
 
-      def handle_begin(statements)
-        statements.children.map do |s|
-          errors_for_statements(s)
-        end
+      def handle_begin(node)
+        node.children.map { |s| errors_for_node(s) }
       end
 
-      def handle_send(statements)
-        first_child = statements.children.first
-        if first_child && Constants.primitive_types.include?(first_child.type)
-          Analyze::BinaryOperator.new(statements.children, @type_map).errors
-        else
-          statements.children.map { |s| errors_for_statements(s) }
-        end
+      def handle_send(node)
+        Analist::Analyze::Send.new(Analist::AST::SendNode.new(node),
+                                   var_to_type_map: @var_to_type_map).errors
       end
 
-      def handle_local_variable_assignment(statements)
-        name = statements.children[0]
-        type = statements.children[1].type
-        @type_map[name] = type
+      def handle_local_variable_assignment(node)
+        var = node.children[0]
+        type = node.children[1].type
+        @var_to_type_map[var] = type
         nil
       end
     end
