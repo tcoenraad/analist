@@ -17,6 +17,10 @@ module Analist
         @schema = schema
       end
 
+      def table_exists?(table_name)
+        table_names.include?(table_name)
+      end
+
       def table_names
         schema.keys
       end
