@@ -14,12 +14,8 @@ module Analist
         annotate_begin(node, schema)
       when :send
         annotate_send(node, schema)
-      when :int
-        annotate_int(node)
-      when :str
-        annotate_str(node)
-      when :const
-        annotate_const(node)
+      when :int, :str, :const
+        annotate_primitive(node)
       else
         raise(NotImplementedError, "Node type `#{node.type}` cannot be annotated")
       end
@@ -31,56 +27,46 @@ module Analist
 
     def annotate_send(node, schema)
       _receiver, method, = node.children
-      case method
-      when :+
-        annotate_send_plus(node, schema)
-      when :all
-        annotate_send_all(node, schema)
-      when :first
-        annotate_send_first(node, schema)
-      when :id
-        annotate_send_id(node, schema)
-      when :reverse
-        annotate_send_reverse(node, schema)
-      else
-        raise(NotImplementedError, "Method `#{method}` cannot be annotated")
+
+      if send_annotations.keys.include?(method)
+        annotated_children = node.children.map { |n| annotate(n, schema) }
+        return AnnotatedNode.new(node, annotated_children, send_annotations[method].call(annotated_children))
       end
+
+      annotate_send_unknown_method(node, schema)
     end
 
-    def annotate_send_plus(node, schema)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) }, [Integer, [Integer], Integer])
-    end
-
-    def annotate_send_id(node, schema)
+    def annotate_send_unknown_method(node, schema)
+      _receiver, method, = node.children
       annotated_children = node.children.map { |n| annotate(n, schema) }
 
-      AnnotatedNode.new(node, annotated_children, [{ type: annotated_children.first.annotation.last[:type], on: :instance }, [], Integer])
+      table_name = annotated_children.first.annotation.last[:type].to_s.downcase.pluralize
+      if schema.table_exists?(table_name)
+        return AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) }, [{ type: annotated_children.first.annotation.last[:type], on: :instance }, [], schema[table_name].find_type_for(method.to_s)])
+      end
+
+      raise(NotImplementedError, "Method `#{method}` cannot be annotated")
     end
 
-    def annotate_send_reverse(node, schema)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) }, [String, [], String])
+    def send_annotations
+      {
+        :+ => ->(_) { [Integer, [Integer], Integer] },
+        all: ->(annotated_children) { [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :collection }] },
+        first: ->(annotated_children) { [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :instance }] },
+        reverse: ->(_) { [String, [], String] }
+      }
     end
 
-    def annotate_send_all(node, schema)
-      annotated_children = node.children.map { |n| annotate(n, schema) }
-      AnnotatedNode.new(node, annotated_children, [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [],  { type: annotated_children.first.annotation.last[:type], on: :collection }])
+    def annotate_primitive(node)
+      AnnotatedNode.new(node, node.children, primitive_annotations[node.type].call(node))
     end
 
-    def annotate_send_first(node, schema)
-      annotated_children = node.children.map { |n| annotate(n, schema) }
-      AnnotatedNode.new(node, annotated_children, [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :instance }])
-    end
-
-    def annotate_const(node)
-      AnnotatedNode.new(node, node.children, [nil, [], { type: node.children.last, on: :collection }])
-    end
-
-    def annotate_int(node)
-      AnnotatedNode.new(node, node.children, [nil, [], Integer])
-    end
-
-    def annotate_str(node)
-      AnnotatedNode.new(node, node.children, [nil, [], String])
+    def primitive_annotations
+      {
+        const: ->(node) { [nil, [], type: node.children.last, on: :collection] },
+        int: ->(_) { [nil, [], Integer] },
+        str: ->(_) { [nil, [], String] }
+      }
     end
   end
 end
