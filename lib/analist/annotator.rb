@@ -36,6 +36,15 @@ module Analist
       annotate_send_unknown_method(node, schema)
     end
 
+    def send_annotations
+      {
+        :+ => ->(_) { [Integer, [Integer], Integer] },
+        all: ->(annotated_children) { [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :collection }] },
+        first: ->(annotated_children) { [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :instance }] },
+        reverse: ->(_) { [String, [], String] }
+      }
+    end
+
     def annotate_send_unknown_method(node, schema)
       _receiver, method, = node.children
       annotated_children = node.children.map { |n| annotate(n, schema) }
@@ -46,15 +55,6 @@ module Analist
       end
 
       raise(NotImplementedError, "Method `#{method}` cannot be annotated")
-    end
-
-    def send_annotations
-      {
-        :+ => ->(_) { [Integer, [Integer], Integer] },
-        all: ->(annotated_children) { [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :collection }] },
-        first: ->(annotated_children) { [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :instance }] },
-        reverse: ->(_) { [String, [], String] }
-      }
     end
 
     def annotate_primitive(node)
