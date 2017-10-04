@@ -54,7 +54,7 @@ module Analist
     def annotate_send_id(node, schema)
       annotated_children = node.children.map { |n| annotate(n, schema) }
 
-      AnnotatedNode.new(node, annotated_children, [{ type: children.first.annotation.last[:type], on: :instance }, [], Integer])
+      AnnotatedNode.new(node, annotated_children, [{ type: annotated_children.first.annotation.last[:type], on: :instance }, [], Integer])
     end
 
     def annotate_send_reverse(node, schema)
@@ -63,12 +63,12 @@ module Analist
 
     def annotate_send_all(node, schema)
       annotated_children = node.children.map { |n| annotate(n, schema) }
-      AnnotatedNode.new(node, annotated_children, [{ type: children.first.annotation.last[:type], on: :collection }, [],  { type: children.first.annotation.last[:type], on: :collection }])
+      AnnotatedNode.new(node, annotated_children, [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [],  { type: annotated_children.first.annotation.last[:type], on: :collection }])
     end
 
     def annotate_send_first(node, schema)
       annotated_children = node.children.map { |n| annotate(n, schema) }
-      AnnotatedNode.new(node, annotated_children, [{ type: children.first.annotation.last[:type], on: :collection }, [], { type: children.first.annotation.last[:type], on: :instance }])
+      AnnotatedNode.new(node, annotated_children, [{ type: annotated_children.first.annotation.last[:type], on: :collection }, [], { type: annotated_children.first.annotation.last[:type], on: :instance }])
     end
 
     def annotate_const(node)
