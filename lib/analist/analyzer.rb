@@ -12,8 +12,8 @@ module Analist
 
     module_function
 
-    def analyze(node, filename)
-      schema = Analist::SQL::Schema.read_from_file(filename)
+    def analyze(node, filename = nil)
+      schema = Analist::SQL::Schema.read_from_file(filename) if filename
       annotated_node = annotate(node, schema)
       check(annotated_node)
     end

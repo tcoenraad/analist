@@ -4,7 +4,7 @@ require_relative './errors'
 
 module Analist
   module Checker
-    def check(node) # rubocop:disable Metrics/MethodLength
+    def check(node)
       return node unless node.respond_to?(:type)
 
       case node.type
@@ -12,6 +12,8 @@ module Analist
         check_begin(node)
       when :send
         check_send(node)
+      when :array
+        check_array(node)
       when :int, :str, :const
         return
       else
@@ -23,18 +25,25 @@ module Analist
       node.children.map { |n| check(n) }
     end
 
+    def check_array(node)
+      node.children.map { |n| check(n) }
+    end
+
     def check_send(node)
       receiver, _method_name, *args = node.children
-      actual_annotation = [receiver.annotation.last, args.flat_map { |a| a.annotation.last }, node.annotation.last]
       expected_annotation = node.annotation
 
-      if expected_annotation != actual_annotation
+      if expected_annotation != actual_annotation(node)
         type_error = Analist::TypeError.new(node.loc.line,
                                             expected_annotation: expected_annotation,
                                             actual_annotation: actual_annotation)
       end
 
       [type_error, check(receiver), args.flat_map { |a| check(a) }].flatten.compact
+    end
+
+    def actual_annotation(node)
+      [receiver.annotation.last, args.flat_map { |a| a.annotation.last }, node.annotation.last]
     end
   end
 end
