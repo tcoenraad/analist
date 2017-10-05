@@ -7,7 +7,7 @@ module Analist
   module Annotator
     module_function
 
-    def annotate(node, schema)
+    def annotate(node, schema = nil)
       return node unless node.respond_to?(:type)
 
       case node.type

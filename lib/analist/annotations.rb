@@ -13,6 +13,7 @@ module Analist
             Array => [Array, [Array], Array]
           }[annotated_children.first.annotation.last]
         end,
+        upcase: ->(_) { [String, [], String] },
         reverse: lambda do |annotated_children|
           {
             String => [String, [], String],
