@@ -4,6 +4,8 @@ require_relative './errors'
 
 module Analist
   module Checker
+    module_function
+
     def check(node)
       return node unless node.respond_to?(:type)
 
@@ -22,28 +24,33 @@ module Analist
     end
 
     def check_begin(node)
-      node.children.map { |n| check(n) }
+      node.children.flat_map { |n| check(n) }.compact
     end
 
     def check_array(node)
-      node.children.map { |n| check(n) }
+      node.children.flat_map { |n| check(n) }.compact
     end
 
-    def check_send(node)
+    def check_send(node) # rubocop:disable Metrics/AbcSize
       receiver, _method_name, *args = node.children
       expected_annotation = node.annotation
+      actual_annotation = [
+        receiver.annotation.last, args.flat_map { |a| a.annotation.last }, node.annotation.last
+      ]
 
-      if expected_annotation != actual_annotation(node)
-        type_error = Analist::TypeError.new(node.loc.line,
-                                            expected_annotation: expected_annotation,
-                                            actual_annotation: actual_annotation)
+      if expected_annotation != actual_annotation
+        if expected_annotation[1].count != actual_annotation[1].count
+          error = Analist::ArgumentError.new(node.loc.line,
+                                             expected_number_of_args: expected_annotation[1].count,
+                                             actual_number_of_args:  actual_annotation[1].count)
+        else
+          error = Analist::TypeError.new(node.loc.line,
+                                         expected_annotation: expected_annotation,
+                                         actual_annotation: actual_annotation)
+        end
       end
 
-      [type_error, check(receiver), args.flat_map { |a| check(a) }].flatten.compact
-    end
-
-    def actual_annotation(node)
-      [receiver.annotation.last, args.flat_map { |a| a.annotation.last }, node.annotation.last]
+      [error, check(receiver), args.flat_map { |a| check(a) }.compact].compact.flatten
     end
   end
 end
