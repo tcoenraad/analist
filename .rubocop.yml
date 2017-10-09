@@ -3,6 +3,7 @@ require: rubocop-rspec
 AllCops:
   Exclude:
     - 'example.rb'
+    - 'vendor/**/*'
 
 Metrics/BlockLength:
   Exclude:
