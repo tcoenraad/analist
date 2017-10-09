@@ -2,7 +2,7 @@
 
 require 'pg_query'
 
-require_relative './create_statement'
+require 'analist/sql/create_statement'
 
 module Analist
   module SQL

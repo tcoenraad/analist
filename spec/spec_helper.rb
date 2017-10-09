@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
+require 'bundler/setup'
+require 'analist'
+
+RSpec.configure(&:disable_monkey_patching!)
+
 require 'pry'
 require 'parser/ruby24'
 require 'pg_query'
-
-require_relative '../lib/analist/analyzer'
 
 class CommonHelpers
   def self.parse(args)
