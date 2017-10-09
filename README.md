@@ -21,7 +21,12 @@ Or install it yourself as:
 
 ## Usage
 
-$ bundle exec analist
+```ruby
+$ bundle exec analist example.rb -s ./spec/support/sql/users.sql
+3 TypeError: [Integer, [Integer], Integer] cannot be coerced into [Integer, [String], Integer]
+4 TypeError: [Array, [Array], Array] cannot be coerced into [Array, [Integer], Array]
+6 TypeError: [Integer, [Integer], Integer] cannot be coerced into [Integer, [String], Integer]
+```
 
 ## Development
 
@@ -31,7 +36,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/analist.
+Bug reports and pull requests are welcome on GitHub at https://github.com/tcoenraad/analist.
 
 ## License
 
