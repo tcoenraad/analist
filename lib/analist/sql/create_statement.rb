@@ -27,9 +27,9 @@ module Analist
 
       def self.sql_type_to_ast_type_map
         {
-          'int4' => :int,
-          'int8' => :int,
-          'varchar' => :str
+          'int4' => Integer,
+          'int8' => Integer,
+          'varchar' => String
         }
       end
 

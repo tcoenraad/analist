@@ -2,7 +2,7 @@
 
 require 'pg_query'
 
-require_relative './create_statement'
+require 'analist/sql/create_statement'
 
 module Analist
   module SQL
@@ -15,6 +15,10 @@ module Analist
 
       def initialize(schema)
         @schema = schema
+      end
+
+      def table_exists?(table_name)
+        table_names.include?(table_name)
       end
 
       def table_names

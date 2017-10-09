@@ -1,17 +1,43 @@
-Analysis
-========
+# Analist
 [![Build Status](https://travis-ci.com/tcoenraad/analist.svg?token=VRpTPqQimpVvBRMqjtwB&branch=master)](https://travis-ci.com/tcoenraad/analist)
 
-## Usage
-```bash
-$ bundle exec ruby analyzer.rb -f simple_addition_and_referencing.rb
-simple_addition_and_referencing.rb:15 ArgumentError, expected 1, actual: 0
-  bad_func_with_arg
----
-simple_addition_and_referencing.rb:18 NoMethodError: undefined method `<<' for (hash)'
-  {} << 2
----
-simple_addition_and_referencing.rb:6 TypeError: int cannot be coerced into str
-    puts 1 + some_string + 'a'
----
+A static analysis tool for Ruby.
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'analist'
 ```
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install analist
+
+## Usage
+
+```ruby
+$ bundle exec analist example.rb -s ./spec/support/sql/users.sql
+3 TypeError: [Integer, [Integer], Integer] cannot be coerced into [Integer, [String], Integer]
+4 TypeError: [Array, [Array], Array] cannot be coerced into [Array, [Integer], Array]
+6 TypeError: [Integer, [Integer], Integer] cannot be coerced into [Integer, [String], Integer]
+```
+
+## Development
+
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/tcoenraad/analist.
+
+## License
+
+The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
