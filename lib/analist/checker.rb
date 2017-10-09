@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative './errors'
+require 'analist/errors'
 
 module Analist
   module Checker
@@ -19,7 +19,7 @@ module Analist
       when :int, :str, :const
         return
       else
-        raise(NotImplementedError, "Node type `#{node.type}` cannot be checked")
+        raise NotImplementedError, "Node type `#{node.type}` cannot be checked"
       end
     end
 

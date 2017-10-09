@@ -2,16 +2,7 @@
 
 source 'https://rubygems.org'
 
-gem 'activesupport'
-gem 'parser'
-gem 'pg_query'
+git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 
-group :development do
-  gem 'guard'
-  gem 'guard-rspec', require: false
-  gem 'pry'
-  gem 'rspec'
-  gem 'rubocop', require: false
-  gem 'rubocop-rspec'
-  gem 'terminal-notifier-guard'
-end
+# Specify your gem's dependencies in analist.gemspec
+gemspec

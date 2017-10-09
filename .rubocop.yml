@@ -2,6 +2,7 @@ require: rubocop-rspec
 
 Metrics/BlockLength:
   Exclude:
+    - 'analist.gemspec'
     - 'spec/**/*'
 
 Metrics/LineLength:
@@ -11,6 +12,7 @@ Metrics/MethodLength:
   Exclude:
     - 'lib/analist/annotator.rb'
     - 'lib/analist/checker.rb'
+    - 'lib/analist/cli.rb'
 
 Style/Documentation:
   Enabled: false

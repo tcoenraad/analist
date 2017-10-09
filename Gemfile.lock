@@ -1,3 +1,11 @@
+PATH
+  remote: .
+  specs:
+    analist (0.1.0.alpha)
+      activesupport
+      parser
+      pg_query
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -51,7 +59,7 @@ GEM
       slop (~> 3.4)
     rainbow (2.2.2)
       rake
-    rake (12.0.0)
+    rake (10.5.0)
     rb-fsevent (0.10.2)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
@@ -92,11 +100,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activesupport
+  analist!
   guard
   guard-rspec
-  parser
-  pg_query
   pry
   rspec
   rubocop

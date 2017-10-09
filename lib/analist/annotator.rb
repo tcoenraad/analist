@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/inflector'
-require_relative './annotations'
+require 'analist/annotations'
 
 module Analist
   module Annotator
@@ -20,7 +20,7 @@ module Analist
       when :int, :str, :const
         annotate_primitive(node)
       else
-        raise(NotImplementedError, "Node type `#{node.type}` cannot be annotated")
+        raise NotImplementedError, "Node type `#{node.type}` cannot be annotated"
       end
     end
 
@@ -57,7 +57,7 @@ module Analist
         )
       end
 
-      raise(NotImplementedError, "Method `#{method}` cannot be annotated")
+      raise NotImplementedError, "Method `#{method}` cannot be annotated"
     end
 
     def annotate_array(node, schema)
