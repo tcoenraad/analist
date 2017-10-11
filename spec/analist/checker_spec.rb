@@ -11,6 +11,12 @@ RSpec.describe Analist::Checker do
   let(:actual_annotation) { checker.first.actual_annotation }
 
   describe '#check' do
+    context 'when parsing an unknown function call' do
+      let(:expression) { 'unknown_function(arg)' }
+
+      it { expect(checker).to eq [] }
+    end
+
     context 'when parsing an unknown property' do
       let(:expression) { 'a.unknown_property' }
 
