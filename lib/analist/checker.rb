@@ -38,8 +38,9 @@ module Analist
 
       receiver, _method_name, *args = node.children
       expected_annotation = node.annotation
+
       actual_annotation = Analist::Annotation.new(
-        receiver.annotation.return_type, args.flat_map { |a| a.annotation.return_type[:type] },
+        receiver&.annotation&.return_type, args.flat_map { |a| a.annotation.return_type[:type] },
         node.annotation.return_type
       )
 
