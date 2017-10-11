@@ -6,7 +6,7 @@ module Analist
   module Checker
     module_function
 
-    def check(node)
+    def check(node) # rubocop:disable Metrics/CyclomaticComplexity
       return node unless node.respond_to?(:type)
 
       case node.type
@@ -19,7 +19,9 @@ module Analist
       when :int, :str, :const
         return
       else
-        raise NotImplementedError, "Node type `#{node.type}` cannot be checked"
+        if ENV['ANALIST_DEBUG']
+          raise NotImplementedError, "Node type `#{node.type}` cannot be checked"
+        end
       end
     end
 
@@ -32,22 +34,26 @@ module Analist
     end
 
     def check_send(node) # rubocop:disable Metrics/AbcSize
+      return if node.annotation.return_type[:type].is_a?(Analist::AnnotationTypeUnknown)
+
       receiver, _method_name, *args = node.children
       expected_annotation = node.annotation
-      actual_annotation = [
-        receiver.annotation.last, args.flat_map { |a| a.annotation.last }, node.annotation.last
-      ]
+      actual_annotation = Analist::Annotation.new(
+        receiver.annotation.return_type, args.flat_map { |a| a.annotation.return_type[:type] },
+        node.annotation.return_type
+      )
 
       if expected_annotation != actual_annotation
-        if expected_annotation[1].count != actual_annotation[1].count
-          error = Analist::ArgumentError.new(node.loc.line,
-                                             expected_number_of_args: expected_annotation[1].count,
-                                             actual_number_of_args:  actual_annotation[1].count)
-        else
-          error = Analist::TypeError.new(node.loc.line,
+        error = if expected_annotation.args_types.count != actual_annotation.args_types.count
+                  Analist::ArgumentError.new(node.loc.line, expected_number_of_args:
+                                                     expected_annotation.args_types.count,
+                                                            actual_number_of_args:
+                                                     actual_annotation.args_types.count)
+                else
+                  Analist::TypeError.new(node.loc.line,
                                          expected_annotation: expected_annotation,
                                          actual_annotation: actual_annotation)
-        end
+                end
       end
 
       [error, check(receiver), args.flat_map { |a| check(a) }.compact].compact.flatten

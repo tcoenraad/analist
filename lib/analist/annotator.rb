@@ -7,7 +7,7 @@ module Analist
   module Annotator
     module_function
 
-    def annotate(node, schema = nil)
+    def annotate(node, schema = nil) # rubocop:disable Metrics/CyclomaticComplexity
       return node unless node.respond_to?(:type)
 
       case node.type
@@ -20,7 +20,10 @@ module Analist
       when :int, :str, :const
         annotate_primitive(node)
       else
-        raise NotImplementedError, "Node type `#{node.type}` cannot be annotated"
+        if ENV['ANALIST_DEBUG']
+          raise NotImplementedError, "Node type `#{node.type}` cannot be annotated"
+        end
+        node
       end
     end
 
@@ -44,24 +47,31 @@ module Analist
     end
 
     def annotate_send_unknown_method(node, schema) # rubocop:disable Metrics/AbcSize
-      _receiver, method, = node.children
+      _receiver, method, *args = node.children
       annotated_children = node.children.map { |n| annotate(n, schema) }
 
-      table_name = annotated_children.first.annotation.last[:type].to_s.downcase.pluralize
-      if schema.table_exists?(table_name)
-        return AnnotatedNode.new(
-          node, annotated_children, [
-            { type: annotated_children.first.annotation.last[:type], on: :instance }, [],
-            schema[table_name].find_type_for(method.to_s)
-          ]
-        )
+      receiver_type = nil
+      if annotated_children.first
+        receiver_type = annotated_children.first.annotation.return_type[:type]
       end
 
-      raise NotImplementedError, "Method `#{method}` cannot be annotated"
+      annotation = annotated_children.first&.annotation
+      if annotation.is_a?(Analist::Annotation) && schema
+        table_name = annotation.return_type[:type].to_s.downcase.pluralize
+        if schema.table_exists?(table_name)
+          return_type = schema[table_name].find_type_for(method.to_s)
+        end
+      end
+
+      return_type ||= AnnotationTypeUnknown.new
+
+      AnnotatedNode.new(node, annotated_children,
+                        Analist::Annotation.new(receiver_type, args, return_type))
     end
 
     def annotate_array(node, schema)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) }, [nil, [], Array])
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) },
+                        Analist::Annotation.new(nil, [], Array))
     end
 
     def annotate_primitive(node)
