@@ -21,7 +21,7 @@ module Analist
         end
       end
 
-      def find_type_for(column)
+      def lookup_type_for_method(column)
         self.class.sql_type_to_ast_type_map[columns[column]&.last]
       end
 
