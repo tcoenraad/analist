@@ -73,6 +73,7 @@ module Analist
 
     def lookup_return_type_from_schema(annotated_children, schema)
       return unless schema
+      return unless annotated_children.first
 
       _receiver, method = annotated_children
 
