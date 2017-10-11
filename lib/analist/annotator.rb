@@ -46,24 +46,16 @@ module Analist
       annotate_send_unknown_method(node, schema)
     end
 
-    def annotate_send_unknown_method(node, schema) # rubocop:disable Metrics/AbcSize
-      _receiver, method, *args = node.children
+    def annotate_send_unknown_method(node, schema)
+      _receiver, _method, *args = node.children
       annotated_children = node.children.map { |n| annotate(n, schema) }
 
-      receiver_type = nil
       if annotated_children.first
         receiver_type = annotated_children.first.annotation.return_type[:type]
       end
 
-      annotation = annotated_children.first&.annotation
-      if annotation.is_a?(Analist::Annotation) && schema
-        table_name = annotation.return_type[:type].to_s.downcase.pluralize
-        if schema.table_exists?(table_name)
-          return_type = schema[table_name].find_type_for(method.to_s)
-        end
-      end
-
-      return_type ||= AnnotationTypeUnknown.new
+      return_type = lookup_return_type_from_schema(annotated_children, schema) ||
+                    AnnotationTypeUnknown
 
       AnnotatedNode.new(node, annotated_children,
                         Analist::Annotation.new(receiver_type, args, return_type))
@@ -77,6 +69,15 @@ module Analist
     def annotate_primitive(node)
       AnnotatedNode.new(node, node.children,
                         Analist::Annotations.primitive_annotations[node.type].call(node))
+    end
+
+    def lookup_return_type_from_schema(annotated_children, schema)
+      return unless schema
+
+      _receiver, method = annotated_children
+
+      table_name = annotated_children.first.annotation.return_type[:type].to_s.downcase.pluralize
+      schema[table_name].lookup_type_for_method(method.to_s) if schema.table_exists?(table_name)
     end
   end
 end

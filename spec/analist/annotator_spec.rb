@@ -11,7 +11,7 @@ RSpec.describe Analist::Annotator do
         described_class.annotate(CommonHelpers.parse('a.unknown_property'))
       end
 
-      it { expect(annotation.return_type[:type]).to be_instance_of Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
 
     context 'when parsing an unknown property on a primitive type' do
@@ -19,7 +19,7 @@ RSpec.describe Analist::Annotator do
         described_class.annotate(CommonHelpers.parse('1.unknown_property'))
       end
 
-      it { expect(annotation.return_type[:type]).to be_instance_of Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
 
     context 'when parsing a simple calculation' do
@@ -56,10 +56,10 @@ RSpec.describe Analist::Annotator do
         described_class.annotate(CommonHelpers.parse('User.first.first_name'), schema)
       end
 
-      it { expect(annotation).to eq Analist::Annotation.new({ type: :User }, [], Integer) }
+      it { expect(annotation).to eq Analist::Annotation.new(:User, [], Integer) }
       it do
         expect(annotated_node2.annotation).to eq(
-          Analist::Annotation.new({ type: :User }, [], String)
+          Analist::Annotation.new(:User, [], String)
         )
       end
     end
@@ -69,7 +69,17 @@ RSpec.describe Analist::Annotator do
         described_class.annotate(CommonHelpers.parse('User.first.unknown_property'), schema)
       end
 
-      it { expect(annotation.return_type[:type]).to be_instance_of Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it do
+        expect(annotated_node.children.first.annotation).to eq(
+          Analist::Annotation.new({ type: :User, on: :collection }, [], type: :User, on: :instance)
+        )
+      end
+      it do
+        expect(annotated_node.children.first.children.first.annotation).to eq(
+          Analist::Annotation.new({ type: nil }, [], type: :User, on: :collection)
+        )
+      end
     end
 
     context 'when parsing an Active Record collection' do
@@ -79,8 +89,7 @@ RSpec.describe Analist::Annotator do
 
       it do
         expect(annotated_node.annotation).to eq Analist::Annotation.new(
-          { type: :User, on: :collection }, [],
-          type: :User, on: :collection
+          { type: :User, on: :collection }, [], type: :User, on: :collection
         )
       end
     end
