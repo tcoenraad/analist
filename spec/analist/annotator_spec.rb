@@ -8,6 +8,12 @@ RSpec.describe Analist::Annotator do
 
     let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), schema) }
 
+    context 'when parsing an unknown function call' do
+      let(:expression) { 'unknown_function(arg)' }
+
+      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+    end
+
     context 'when parsing an unknown property' do
       let(:expression) { 'a.unknown_property' }
 

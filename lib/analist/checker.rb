@@ -34,7 +34,7 @@ module Analist
     end
 
     def check_send(node) # rubocop:disable Metrics/AbcSize
-      return if node.annotation.return_type[:type].is_a?(Analist::AnnotationTypeUnknown)
+      return [] if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
 
       receiver, _method_name, *args = node.children
       expected_annotation = node.annotation
