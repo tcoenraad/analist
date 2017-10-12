@@ -2,6 +2,7 @@
 
 require 'active_support/inflector'
 require 'analist/annotations'
+require 'analist/symbol_table'
 
 module Analist
   module Annotator
@@ -17,6 +18,10 @@ module Analist
         annotate_send(node, schema)
       when :array
         annotate_array(node, schema)
+      when :lvasgn
+        annotate_local_variable_assignment(node, schema)
+      when :lvar
+        annotate_local_variable(node, schema)
       when :int, :str, :const
         annotate_primitive(node)
       else
@@ -28,7 +33,10 @@ module Analist
     end
 
     def annotate_begin(node, schema)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) }, nil)
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) },
+                        Analist::Annotation.new(Analist::AnnotationTypeUnknown,
+                                                Analist::AnnotationTypeUnknown,
+                                                Analist::AnnotationTypeUnknown))
     end
 
     def annotate_send(node, schema) # rubocop:disable Metrics/AbcSize
@@ -67,6 +75,22 @@ module Analist
     def annotate_array(node, schema)
       AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) },
                         Analist::Annotation.new(nil, [], Array))
+    end
+
+    def annotate_local_variable_assignment(node, schema)
+      annotated_children = node.children.map { |n| annotate(n, schema) }
+      variable, value = annotated_children
+
+      SymbolTable.store(variable, value.annotation)
+
+      AnnotatedNode.new(node, annotated_children,
+                        Analist::Annotation.new(nil, [], value.annotation.return_type[:type]))
+    end
+
+    def annotate_local_variable(node, schema)
+      annotated_children = node.children.map { |n| annotate(n, schema) }
+      AnnotatedNode.new(node, annotated_children,
+                        SymbolTable.retrieve(annotated_children.first))
     end
 
     def annotate_primitive(node)
