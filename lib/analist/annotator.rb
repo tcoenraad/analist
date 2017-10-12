@@ -31,15 +31,18 @@ module Analist
       AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) }, nil)
     end
 
-    def annotate_send(node, schema)
+    def annotate_send(node, schema) # rubocop:disable Metrics/AbcSize
       _receiver, method, = node.children
 
       if Analist::Annotations.send_annotations.keys.include?(method)
         annotated_children = node.children.map { |n| annotate(n, schema) }
+        receiver_return_type = annotated_children.first.annotation.return_type[:type]
         return AnnotatedNode.new(
           node,
           annotated_children,
-          Analist::Annotations.send_annotations[method].call(annotated_children)
+          Analist::Annotations.send_annotations[method].call(receiver_return_type) ||
+            Analist::Annotation.new(receiver_return_type, Analist::AnnotationTypeUnknown,
+                                    Analist::AnnotationTypeUnknown)
         )
       end
 

@@ -26,34 +26,34 @@ module Analist
   module Annotations
     module_function
 
-    def send_annotations # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+    def send_annotations # rubocop:disable Metrics/MethodLength
       {
-        :+ => lambda do |annotated_children|
+        :+ => lambda do |receiver_return_type|
           {
             Integer => Annotation.new(Integer, [Integer], Integer),
             String => Annotation.new(String, [String], String),
             Array => Annotation.new(Array, [Array], Array)
-          }[annotated_children.first.annotation.return_type[:type]]
+          }[receiver_return_type]
         end,
         upcase: ->(_) { Annotation.new(String, [], String) },
-        reverse: lambda do |annotated_children|
+        reverse: lambda do |receiver_return_type|
           {
             String => Annotation.new(String, [], String),
             Array => Annotation.new(Array, [], Array)
-          }[annotated_children.first.annotation.return_type[:type]]
+          }[receiver_return_type]
         end,
-        all: lambda do |annotated_children|
+        all: lambda do |receiver_return_type|
           Annotation.new(
-            { type: annotated_children.first.annotation.return_type[:type], on: :collection },
+            { type: receiver_return_type, on: :collection },
             [],
-            type: annotated_children.first.annotation.return_type[:type], on: :collection
+            type: receiver_return_type, on: :collection
           )
         end,
-        first: lambda do |annotated_children|
+        first: lambda do |receiver_return_type|
           Annotation.new(
-            { type: annotated_children.first.annotation.return_type[:type], on: :collection },
+            { type: receiver_return_type, on: :collection },
             [],
-            type: annotated_children.first.annotation.return_type[:type], on: :instance
+            type: receiver_return_type, on: :instance
           )
         end
       }

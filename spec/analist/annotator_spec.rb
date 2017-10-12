@@ -14,7 +14,7 @@ RSpec.describe Analist::Annotator do
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
 
-    context 'when parsing an unknown property' do
+    context 'when parsing an unknown property on a variable' do
       let(:expression) { 'a.unknown_property' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
@@ -22,6 +22,28 @@ RSpec.describe Analist::Annotator do
 
     context 'when parsing an unknown property on a primitive type' do
       let(:expression) { '1.unknown_property' }
+
+      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+    end
+
+    context 'when parsing an unknown property on a Active Record object' do
+      let(:expression) { 'User.first.unknown_property' }
+
+      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it do
+        expect(annotated_node.children.first.annotation).to eq(
+          Analist::Annotation.new({ type: :User, on: :collection }, [], type: :User, on: :instance)
+        )
+      end
+      it do
+        expect(annotated_node.children.first.children.first.annotation).to eq(
+          Analist::Annotation.new({ type: nil }, [], type: :User, on: :collection)
+        )
+      end
+    end
+
+    context 'when parsing a calculation on an unknown property on a Active Record object' do
+      let(:expression) { 'User.first.unknown_property + 1' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
@@ -52,32 +74,8 @@ RSpec.describe Analist::Annotator do
 
     context 'when parsing a known property on a Active Record object' do
       let(:expression) { 'User.first.id' }
-      let(:annotated_node2) do
-        described_class.annotate(CommonHelpers.parse('User.first.first_name'), schema)
-      end
 
       it { expect(annotation).to eq Analist::Annotation.new(:User, [], Integer) }
-      it do
-        expect(annotated_node2.annotation).to eq(
-          Analist::Annotation.new(:User, [], String)
-        )
-      end
-    end
-
-    context 'when parsing an unknown property on a Active Record object' do
-      let(:expression) { 'User.first.unknown_property' }
-
-      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
-      it do
-        expect(annotated_node.children.first.annotation).to eq(
-          Analist::Annotation.new({ type: :User, on: :collection }, [], type: :User, on: :instance)
-        )
-      end
-      it do
-        expect(annotated_node.children.first.children.first.annotation).to eq(
-          Analist::Annotation.new({ type: nil }, [], type: :User, on: :collection)
-        )
-      end
     end
 
     context 'when parsing an Active Record collection' do
