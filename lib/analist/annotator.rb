@@ -8,12 +8,16 @@ module Analist
   module Annotator
     module_function
 
-    def annotate(node, schema = nil) # rubocop:disable Metrics/CyclomaticComplexity
+    def annotate(node, schema = nil) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/AbcSize
       return node unless node.respond_to?(:type)
 
       case node.type
       when :begin
         annotate_begin(node, schema)
+      when :block
+        annotate_block(node, schema)
+      when :args
+        annotate_args(node, schema)
       when :send
         annotate_send(node, schema)
       when :array
@@ -34,9 +38,18 @@ module Analist
 
     def annotate_begin(node, schema)
       AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) },
-                        Analist::Annotation.new(Analist::AnnotationTypeUnknown,
-                                                Analist::AnnotationTypeUnknown,
-                                                Analist::AnnotationTypeUnknown))
+                        Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
+    end
+
+    def annotate_block(node, schema)
+      SymbolTable.enter_scope
+      block = annotate_begin(node, schema)
+      SymbolTable.exit_scope
+      block
+    end
+
+    def annotate_args(node, schema)
+      annotate_begin(node, schema)
     end
 
     def annotate_send(node, schema) # rubocop:disable Metrics/AbcSize
