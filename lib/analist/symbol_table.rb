@@ -4,7 +4,7 @@ module Analist
   class SymbolTable
     class << self
       def table
-        @table ||= { level => {} }
+        @table ||= { 0 => {} }
       end
 
       def level
