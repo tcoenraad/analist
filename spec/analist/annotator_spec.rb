@@ -116,5 +116,64 @@ RSpec.describe Analist::Annotator do
         )
       end
     end
+
+    context 'when annotating a variable' do
+      let(:expression) { 'var' }
+
+      it do
+        expect(annotation).to eq Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+      end
+    end
+
+    context 'when annotating a variable assignment' do
+      let(:expression) { 'var = 1' }
+
+      it { expect(annotation).to eq Analist::Annotation.new(nil, [], Integer) }
+    end
+
+    context 'when annotating a variable assignment and reference' do
+      let(:expression) { 'var = 1 ; var + 1' }
+
+      it do
+        expect(annotated_node.children[0].annotation).to eq Analist::Annotation.new(
+          nil, [], Integer
+        )
+      end
+      it do
+        expect(annotated_node.children[1].annotation).to eq Analist::Annotation.new(
+          Integer, [Integer], Integer
+        )
+      end
+    end
+
+    context 'with regards to scopes in blocks' do
+      let(:expression) { 'var = 1 ; [].each { var ; var = "a"; var } ; var' }
+
+      it do
+        expect(annotated_node.children[0].annotation).to eq(
+          Analist::Annotation.new(nil, [], Integer)
+        )
+      end
+      it do
+        expect(annotated_node.children[1].children[2].children[0].annotation).to eq(
+          Analist::Annotation.new(nil, [], Integer)
+        )
+      end
+      it do
+        expect(annotated_node.children[1].children[2].children[1].annotation).to eq(
+          Analist::Annotation.new(nil, [], String)
+        )
+      end
+      it do
+        expect(annotated_node.children[1].children[2].children[2].annotation).to eq(
+          Analist::Annotation.new(nil, [], String)
+        )
+      end
+      it do
+        expect(annotated_node.children[2].annotation).to eq(
+          Analist::Annotation.new(nil, [], Integer)
+        )
+      end
+    end
   end
 end
