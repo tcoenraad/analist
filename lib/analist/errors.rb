@@ -24,8 +24,19 @@ module Analist
       @actual_annotation = actual_annotation
     end
 
+    def annotation_difference
+      diff = []
+      %i[receiver_type return_type args_types].each do |type|
+        expected = expected_annotation.send(type)
+        actual = actual_annotation.send(type)
+        humanized_type = type.to_s.humanize(capitalize: false)
+        diff << "expected `#{expected}` #{humanized_type}, actual `#{actual}`" if expected != actual
+      end
+      diff
+    end
+
     def to_s
-      "#{line} TypeError: #{expected_annotation} cannot be coerced into #{actual_annotation}"
+      "#{line} TypeError: #{annotation_difference.join(',')}"
     end
   end
 
