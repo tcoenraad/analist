@@ -11,7 +11,7 @@ module Analist
 
       attr_reader :schema
 
-      def_delegators :schema, :table_name, :columns, :find_type_for, :[]
+      def_delegators :schema, :table_name, :find_type_for, :[]
 
       def initialize(schema)
         @schema = schema
