@@ -1,0 +1,3 @@
+Exclude:
+  - 'example.rb'
+  - 'vendor/**/*'
