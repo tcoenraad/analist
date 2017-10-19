@@ -1,5 +1,5 @@
 # Analist
-[![Build Status](https://travis-ci.org/tcoenraad/analist.svg?branch=master)](https://travis-ci.com/tcoenraad/analist)
+[![Build Status](https://travis-ci.org/tcoenraad/analist.svg?branch=master)](https://travis-ci.org/tcoenraad/analist)
 
 A static analysis tool for Ruby.
 
