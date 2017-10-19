@@ -55,7 +55,7 @@ module Analist
 
     def files
       @files ||= begin
-        excluded_files = config.excluded_files.map { |f| File.expand_path(f) }
+        excluded_files = Dir.glob(config.excluded_files).map { |f| File.expand_path(f) }
         Analist::FileFinder.find(options[:files]) - excluded_files
       end
     end
