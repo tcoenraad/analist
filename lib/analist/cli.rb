@@ -15,29 +15,29 @@ module Analist
   class CLI
     include TextHelper
 
-    def default_options
-      {
-        config: './.analist.yml'
-      }
-    end
-
     def initialize
+      @options = default_options
+
       OptionParser.new do |parser|
         parser.banner = 'Usage: example.rb'
         parser.version = Analist::VERSION
 
         parser.on('-s', '--schema FILE') do |file|
-          options[:schema] = file
+          @options[:schema] = file
         end
 
         parser.on('-c', '--config FILE') do |file|
-          options[:config] = file
+          @options[:config] = file
         end
       end.parse!
 
-      options[:files] = ARGV
+      @options[:files] = ARGV
+    end
 
-      @options = default_options.merge(options)
+    def default_options
+      {
+        config: './.analist.yml'
+      }
     end
 
     def run # rubocop:disable Metrics/AbcSize
@@ -62,8 +62,8 @@ module Analist
     def collected_errors
       @collected_errors ||= begin
         files.each_with_object({}) do |file, h|
-          errors = Analist::Analyzer.analyze(ast(file),
-                                             schema_filename: options.fetch(:schema, nil))
+          errors = Analist::Analyzer.analyze(to_ast(file),
+                                             schema_filename: @options.fetch(:schema, nil))
           h[file] = errors if errors&.any?
           h
         end
@@ -75,13 +75,13 @@ module Analist
     end
 
     def config
-      @config ||= Analist::Config.new(options[:config])
+      @config ||= Analist::Config.new(@options[:config])
     end
 
     def files
       @files ||= begin
         excluded_files = Dir.glob(config.excluded_files).map { |f| File.expand_path(f) }
-        Analist::FileFinder.find(options[:files]) - excluded_files
+        Analist::FileFinder.find(@options[:files]) - excluded_files
       end
     end
   end
