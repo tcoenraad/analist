@@ -14,7 +14,7 @@ module Analist
       args.uniq.each do |arg|
         if File.directory?(arg)
           files += target_files_in_dir(arg.chomp(File::SEPARATOR))
-        elsif ruby_file?(arg)
+        elsif FileTest.file?(arg) && ruby_file?(arg)
           files << arg
         end
       end

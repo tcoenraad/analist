@@ -6,6 +6,7 @@ require 'pry'
 require 'optparse'
 
 require 'analist/analyzer'
+require 'analist/config'
 require 'analist/file_finder'
 require 'analist/text_helper'
 require 'analist/version'
@@ -15,12 +16,12 @@ module Analist
     include TextHelper
 
     def run # rubocop:disable Metrics/AbcSize
-      puts "Inspecting #{pluralize(options[:files].size, 'file')}"
+      puts "Inspecting #{pluralize(files.size, 'file')}"
 
       print_results
 
-      puts "#{pluralize(options[:files].size, 'file')} inspected, "\
-        "#{pluralize(collected_errors.values.sum(&:count), 'error')}"
+      puts "#{pluralize(files.size, 'file')} inspected, "\
+        "#{pluralize(collected_errors.values.sum(&:count), 'error')} found"
 
       exit 1 if collected_errors.any?
     end
@@ -35,7 +36,7 @@ module Analist
 
     def collected_errors
       @collected_errors ||= begin
-        options[:files].each_with_object({}) do |file, h|
+        files.each_with_object({}) do |file, h|
           errors = Analist::Analyzer.analyze(ast(file),
                                              schema_filename: options.fetch(:schema, nil))
           h[file] = errors if errors&.any?
@@ -48,9 +49,22 @@ module Analist
       Parser::Ruby24.parse(IO.read(file))
     end
 
+    def config
+      @config ||= Analist::Config.new(options[:config])
+    end
+
+    def files
+      @files ||= begin
+        excluded_files = config.excluded_files.map { |f| File.expand_path(f) }
+        Analist::FileFinder.find(options[:files]) - excluded_files
+      end
+    end
+
     def options
       @options ||= begin
-        options = {}
+        options = {
+          config: './.analist.yml'
+        }
         OptionParser.new do |parser|
           parser.banner = 'Usage: example.rb'
           parser.version = Analist::VERSION
@@ -58,9 +72,13 @@ module Analist
           parser.on('-s', '--schema FILE') do |file|
             options[:schema] = file
           end
+
+          parser.on('-c', '--config FILE') do |file|
+            options[:config] = file
+          end
         end.parse!
 
-        options[:files] = Analist::FileFinder.find(ARGV)
+        options[:files] = ARGV
 
         options
       end
