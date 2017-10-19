@@ -1,5 +1,5 @@
 # Analist
-[![Build Status](https://travis-ci.org/tcoenraad/analist.svg?branch=master)](https://travis-ci.com/tcoenraad/analist)
+[![Build Status](https://travis-ci.org/tcoenraad/analist.svg?branch=master)](https://travis-ci.org/tcoenraad/analist)
 
 A static analysis tool for Ruby.
 
@@ -23,10 +23,12 @@ Or install it yourself as:
 
 ```ruby
 $ bundle exec analist example.rb -s ./spec/support/sql/users.sql
-3 TypeError: [Integer, [Integer], Integer] cannot be coerced into [Integer, [String], Integer]
-4 TypeError: [Array, [Array], Array] cannot be coerced into [Array, [Integer], Array]
-6 TypeError: [Integer, [Integer], Integer] cannot be coerced into [Integer, [String], Integer]
-```
+Inspecting 22 files
+example.rb:3 TypeError: expected `[Integer]` args types, actual `[String]`
+example.rb:4 TypeError: expected `[Array]` args types, actual `[Integer]`
+example.rb:6 TypeError: expected `[Integer]` args types, actual `[String]`
+example.rb:6 TypeError: expected `{:type=>:User}` receiver type, actual `{:type=>:User, :on=>:instance}`
+22 files inspected, 4 errors found```
 
 ## Development
 
