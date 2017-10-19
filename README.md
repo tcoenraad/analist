@@ -28,7 +28,8 @@ example.rb:3 TypeError: expected `[Integer]` args types, actual `[String]`
 example.rb:4 TypeError: expected `[Array]` args types, actual `[Integer]`
 example.rb:6 TypeError: expected `[Integer]` args types, actual `[String]`
 example.rb:6 TypeError: expected `{:type=>:User}` receiver type, actual `{:type=>:User, :on=>:instance}`
-22 files inspected, 4 errors found```
+22 files inspected, 4 errors found
+```
 
 ## Development
 
