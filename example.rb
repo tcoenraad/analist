@@ -4,3 +4,4 @@
 [] + 1
 
 User.first.id + 'a'
+User.first.random_number + 'a'

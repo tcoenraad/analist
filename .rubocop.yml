@@ -17,7 +17,12 @@ Metrics/MethodLength:
   Exclude:
     - 'lib/analist/annotator.rb'
     - 'lib/analist/checker.rb'
+    - 'lib/analist/headerizer.rb'
     - 'lib/analist/cli.rb'
+
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/analist/annotator.rb'
 
 Style/Documentation:
   Enabled: false

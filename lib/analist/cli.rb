@@ -5,7 +5,7 @@ require 'parser/ruby24'
 require 'pry'
 require 'optparse'
 
-require 'analist/analyzer'
+require 'analist'
 require 'analist/config'
 require 'analist/file_finder'
 require 'analist/text_helper'
@@ -61,17 +61,8 @@ module Analist
 
     def collected_errors
       @collected_errors ||= begin
-        files.each_with_object({}) do |file, h|
-          errors = Analist::Analyzer.analyze(to_ast(file),
-                                             schema_filename: @options.fetch(:schema, nil))
-          h[file] = errors if errors&.any?
-          h
-        end
+        Analist.analyze(files, schema_filename: @options.fetch(:schema, nil))
       end
-    end
-
-    def to_ast(file)
-      Parser::Ruby24.parse(IO.read(file))
     end
 
     def config

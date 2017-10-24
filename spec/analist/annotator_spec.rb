@@ -75,7 +75,11 @@ RSpec.describe Analist::Annotator do
     context 'when parsing a known property on a Active Record object' do
       let(:expression) { 'User.first.id' }
 
-      it { expect(annotation).to eq Analist::Annotation.new(:User, [], Integer) }
+      it do
+        expect(annotation).to eq(
+          Analist::Annotation.new({ type: :User, on: :instance }, [], Integer)
+        )
+      end
     end
 
     context 'when parsing an Active Record collection' do
