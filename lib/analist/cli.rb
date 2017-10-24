@@ -45,10 +45,11 @@ module Analist
 
       print_collected_errors
 
+      error_count = collected_errors.values.sum(&:count)
       puts "#{pluralize(files.size, 'file')} inspected, "\
-        "#{pluralize(collected_errors.values.sum(&:count), 'error')} found"
+        "#{pluralize(error_count, 'error')} found"
 
-      exit 1 if collected_errors.any?
+      exit 1 if error_count.positive?
     end
 
     def print_collected_errors
