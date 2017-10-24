@@ -16,7 +16,7 @@ end
 
 module Blaat
   class BlaatedUser < User
-    def method3
+    def method
       'it exists'
     end
   end

@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe Analist::Annotator do
-  let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+  let(:resources) do
+    { schema: Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+  end
 
   describe '#annotate' do
     subject(:annotation) { annotated_node.annotation }
 
-    let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), schema) }
+    let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
 
     context 'when parsing an unknown function call' do
       let(:expression) { 'unknown_function(arg)' }
