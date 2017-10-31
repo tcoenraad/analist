@@ -3,7 +3,7 @@
 require 'bundler/setup'
 require 'analist'
 
-RSpec.configure(&:disable_monkey_patching!)
+# RSpec.configure(&:disable_monkey_patching!)
 
 require 'pry'
 require 'parser/ruby24'

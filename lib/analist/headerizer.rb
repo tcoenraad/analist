@@ -22,15 +22,17 @@ module Analist
         node.children.map { |n| find_headers(n, header_table, scope: scope) }
       when :class
         klass, superklass, body = node.children
-        header_table.store_class(to_namespace(klass),
-                                 scope: scope, superklass: to_namespace(superklass))
-        find_headers(body, header_table, scope: scope + [to_namespace(klass)])
+        namespace = to_namespace(klass)
+        header_table.store_class(namespace.last,
+                                 scope: scope + namespace[0..-2],
+                                 superklass: to_namespace(superklass).join('::'))
+        find_headers(body, header_table, scope: scope + namespace)
       when :def
         method, = node.children
         header_table.store_method(method, scope, node)
       when :module
         namespace, body = node.children
-        find_headers(body, header_table, scope: scope + [to_namespace(namespace)])
+        find_headers(body, header_table, scope: scope + to_namespace(namespace))
       end
     end
 

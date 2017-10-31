@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe Analist::Annotator do
+  let(:headers) {}
   let(:resources) do
-    { schema: Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+    { schema: Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql'),
+      headers: Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
   end
 
   describe '#annotate' do
@@ -10,25 +12,25 @@ RSpec.describe Analist::Annotator do
 
     let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
 
-    context 'when parsing an unknown function call' do
+    context 'when annotating an unknown function call' do
       let(:expression) { 'unknown_function(arg)' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
 
-    context 'when parsing an unknown property on a variable' do
+    context 'when annotating an unknown property on a variable' do
       let(:expression) { 'a.unknown_property' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
 
-    context 'when parsing an unknown property on a primitive type' do
+    context 'when annotating an unknown property on a primitive type' do
       let(:expression) { '1.unknown_property' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
 
-    context 'when parsing an unknown property on a Active Record object' do
+    context 'when annotating an unknown property on a Active Record object' do
       let(:expression) { 'User.first.unknown_property' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
@@ -44,25 +46,25 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when parsing a calculation on an unknown property on a Active Record object' do
+    context 'when annotating a calculation on an unknown property on a Active Record object' do
       let(:expression) { 'User.first.unknown_property + 1' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end
 
-    context 'when parsing a simple calculation' do
+    context 'when annotating a simple calculation' do
       subject(:expression) { '1 + 1' }
 
       it { expect(annotation).to eq Analist::Annotation.new(Integer, [Integer], Integer) }
     end
 
-    context 'when parsing a simple method call' do
+    context 'when annotating a simple method call' do
       subject(:expression) { '"word".reverse' }
 
       it { expect(annotation).to eq Analist::Annotation.new(String, [], String) }
     end
 
-    context 'when parsing a chained method call' do
+    context 'when annotating a chained method call' do
       subject(:expression) { '"word".reverse.upcase' }
 
       it { expect(annotated_node).to be_instance_of Analist::AnnotatedNode }
@@ -74,7 +76,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when parsing a known property on a Active Record object' do
+    context 'when annotating a known property on a Active Record object' do
       let(:expression) { 'User.first.id' }
 
       it do
@@ -84,7 +86,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when parsing an Active Record collection' do
+    context 'when annotating an Active Record collection' do
       let(:expression) { 'User.all' }
 
       it do
@@ -94,7 +96,15 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when duck typing, e.g. for `reverse`' do
+    context 'when annotating an user-defined method' do
+      let(:expression) { 'User.first.full_name' }
+
+      it do
+        expect(annotation).to eq Analist::Annotation.new({ type: :User, on: :instance }, [], String)
+      end
+    end
+
+    context 'when annotating duck types, e.g. for `reverse`' do
       let(:expression) { '"word".reverse' }
       let(:annotated_node2) { described_class.annotate(CommonHelpers.parse('[1, 2, 3].reverse')) }
 
@@ -152,7 +162,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'with regards to scopes in blocks' do
+    context 'with annotating blocks, handle scope' do
       let(:expression) { 'var = 1 ; [].each { var ; var = "a"; var } ; var' }
 
       it do

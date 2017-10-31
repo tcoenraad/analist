@@ -26,11 +26,11 @@ module Analist
       end
 
       def self.read_from_file(filename)
-        tree = parse_sql(filename)
+        tree = parse_sql_from_file(filename)
         new(create_statements(tree))
       end
 
-      def self.parse_sql(filename)
+      def self.parse_sql_from_file(filename)
         PgQuery.parse(File.read(filename)).tree
       end
 

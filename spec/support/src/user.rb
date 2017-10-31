@@ -15,9 +15,11 @@ class User < ActiveRecord::Base
 end
 
 module Blaat
-  class BlaatedUser < User
+  class BlaatUser < User
     def method
       'it exists'
     end
   end
 end
+
+class Blaat::SuperBlaatUser < User; end

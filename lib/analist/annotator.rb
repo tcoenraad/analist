@@ -30,6 +30,8 @@ module Analist
         annotate_local_variable_assignment(node, resources)
       when :lvar
         annotate_local_variable(node, resources)
+      when :dstr
+        annotate_dynamic_string(node, resources)
       when :int, :str, :const
         annotate_primitive(node)
       else
@@ -124,6 +126,11 @@ module Analist
                         Analist::Annotations.primitive_annotations[node.type].call(node))
     end
 
+    def annotate_dynamic_string(node, _resources)
+      AnnotatedNode.new(node, node.children,
+                        Analist::Annotations.primitive_annotations[node.type].call(node))
+    end
+
     def lookup_return_type_from_headers(annotated_children, headers)
       return unless headers
       return unless annotated_children.first
@@ -131,7 +138,7 @@ module Analist
       receiver, method = annotated_children
       klass_name = receiver.annotation.return_type[:type].to_s
 
-      last_statement = headers.methods_table.dig(method, klass_name)&.children&.last
+      last_statement = headers.retrieve_method(method, klass_name)&.children&.last
       annotate(last_statement).annotation.return_type if last_statement
     end
 

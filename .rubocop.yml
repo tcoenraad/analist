@@ -4,6 +4,7 @@ AllCops:
   Exclude:
     - 'example.rb'
     - 'vendor/**/*'
+    - 'spec/support/**/*'
 
 Metrics/BlockLength:
   Exclude:
