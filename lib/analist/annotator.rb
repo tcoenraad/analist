@@ -8,24 +8,30 @@ module Analist
   module Annotator
     module_function
 
-    def annotate(node, schema = nil) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/AbcSize
+    def annotate(node, resources = nil) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/LineLength
       return node unless node.respond_to?(:type)
 
       case node.type
       when :begin
-        annotate_begin(node, schema)
+        annotate_begin(node, resources)
       when :block
-        annotate_block(node, schema)
+        annotate_block(node, resources)
+      when :class
+        annotate_class(node, resources)
+      when :module
+        annotate_module(node, resources)
       when :args
-        annotate_args(node, schema)
+        annotate_args(node, resources)
       when :send
-        annotate_send(node, schema)
+        annotate_send(node, resources)
       when :array
-        annotate_array(node, schema)
+        annotate_array(node, resources)
       when :lvasgn
-        annotate_local_variable_assignment(node, schema)
+        annotate_local_variable_assignment(node, resources)
       when :lvar
-        annotate_local_variable(node, schema)
+        annotate_local_variable(node, resources)
+      when :dstr
+        annotate_dynamic_string(node, resources)
       when :int, :str, :const
         annotate_primitive(node)
       else
@@ -36,27 +42,37 @@ module Analist
       end
     end
 
-    def annotate_begin(node, schema)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) },
+    def annotate_args(node, resources)
+      annotate_begin(node, resources)
+    end
+
+    def annotate_begin(node, resources)
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
                         Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
     end
 
-    def annotate_block(node, schema)
+    def annotate_block(node, resources)
       SymbolTable.enter_scope
-      block = annotate_begin(node, schema)
+      block = annotate_begin(node, resources)
       SymbolTable.exit_scope
       block
     end
 
-    def annotate_args(node, schema)
-      annotate_begin(node, schema)
+    def annotate_module(node, resources)
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
+                        Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
     end
 
-    def annotate_send(node, schema) # rubocop:disable Metrics/AbcSize
+    def annotate_class(node, resources)
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
+                        Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
+    end
+
+    def annotate_send(node, resources) # rubocop:disable Metrics/AbcSize
       _receiver, method, = node.children
 
       if Analist::Annotations.send_annotations.keys.include?(method)
-        annotated_children = node.children.map { |n| annotate(n, schema) }
+        annotated_children = node.children.map { |n| annotate(n, resources) }
         receiver_return_type = annotated_children.first.annotation.return_type[:type]
         return AnnotatedNode.new(
           node,
@@ -67,31 +83,30 @@ module Analist
         )
       end
 
-      annotate_send_unknown_method(node, schema)
+      annotate_send_unknown_method(node, resources)
     end
 
-    def annotate_send_unknown_method(node, schema)
-      _receiver, _method, *args = node.children
-      annotated_children = node.children.map { |n| annotate(n, schema) }
+    def annotate_send_unknown_method(node, resources)
+      annotated_children = node.children.map { |n| annotate(n, resources) }
+      annotated_receiver, _method, *args = annotated_children
 
-      if annotated_children.first
-        receiver_type = annotated_children.first.annotation.return_type[:type]
-      end
+      receiver_type = annotated_receiver.annotation.return_type if annotated_receiver
 
-      return_type = lookup_return_type_from_schema(annotated_children, schema) ||
+      return_type = lookup_return_type_from_headers(annotated_children, resources[:headers]) ||
+                    lookup_return_type_from_schema(annotated_children, resources[:schema]) ||
                     AnnotationTypeUnknown
 
       AnnotatedNode.new(node, annotated_children,
                         Analist::Annotation.new(receiver_type, args, return_type))
     end
 
-    def annotate_array(node, schema)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, schema) },
+    def annotate_array(node, resources)
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
                         Analist::Annotation.new(nil, [], Array))
     end
 
-    def annotate_local_variable_assignment(node, schema)
-      annotated_children = node.children.map { |n| annotate(n, schema) }
+    def annotate_local_variable_assignment(node, resources)
+      annotated_children = node.children.map { |n| annotate(n, resources) }
       variable, value = annotated_children
 
       SymbolTable.store(variable, value.annotation)
@@ -100,8 +115,8 @@ module Analist
                         Analist::Annotation.new(nil, [], value.annotation.return_type[:type]))
     end
 
-    def annotate_local_variable(node, schema)
-      annotated_children = node.children.map { |n| annotate(n, schema) }
+    def annotate_local_variable(node, resources)
+      annotated_children = node.children.map { |n| annotate(n, resources) }
       AnnotatedNode.new(node, annotated_children,
                         SymbolTable.retrieve(annotated_children.first))
     end
@@ -111,13 +126,29 @@ module Analist
                         Analist::Annotations.primitive_annotations[node.type].call(node))
     end
 
+    def annotate_dynamic_string(node, _resources)
+      AnnotatedNode.new(node, node.children,
+                        Analist::Annotations.primitive_annotations[node.type].call(node))
+    end
+
+    def lookup_return_type_from_headers(annotated_children, headers)
+      return unless headers
+      return unless annotated_children.first
+
+      receiver, method = annotated_children
+      klass_name = receiver.annotation.return_type[:type].to_s
+
+      last_statement = headers.retrieve_method(method, klass_name)&.children&.last
+      annotate(last_statement).annotation.return_type if last_statement
+    end
+
     def lookup_return_type_from_schema(annotated_children, schema)
       return unless schema
       return unless annotated_children.first
 
-      _receiver, method = annotated_children
+      receiver, method = annotated_children
 
-      table_name = annotated_children.first.annotation.return_type[:type].to_s.downcase.pluralize
+      table_name = receiver.annotation.return_type[:type].to_s.downcase.pluralize
       schema[table_name].lookup_type_for_method(method.to_s) if schema.table_exists?(table_name)
     end
   end

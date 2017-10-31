@@ -3,15 +3,19 @@
 require 'bundler/setup'
 require 'analist'
 
-RSpec.configure(&:disable_monkey_patching!)
+# RSpec.configure(&:disable_monkey_patching!)
 
 require 'pry'
 require 'parser/ruby24'
 require 'pg_query'
 
 class CommonHelpers
-  def self.parse(args)
-    Parser::Ruby24.parse(args)
+  def self.parse(string)
+    Parser::Ruby24.parse(string)
+  end
+
+  def self.parse_file(file)
+    Parser::Ruby24.parse(IO.read(file))
   end
 
   def self.parse_sql(filename)
