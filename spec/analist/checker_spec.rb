@@ -2,11 +2,12 @@
 
 RSpec.describe Analist::Checker do
   subject(:errors) do
-    described_class.check(Analist::Annotator.annotate(CommonHelpers.parse(expression), schema))
+    described_class.check(Analist::Annotator.annotate(CommonHelpers.parse(expression), resources))
   end
 
-  let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
-
+  let(:resources) do
+    { schema: Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+  end
   let(:expected_annotation) { errors.first.expected_annotation }
   let(:actual_annotation) { errors.first.actual_annotation }
 

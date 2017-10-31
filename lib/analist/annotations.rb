@@ -61,6 +61,7 @@ module Analist
 
     def primitive_annotations
       {
+        dstr: ->(_) { Annotation.new(nil, [], String) },
         int: ->(_) { Annotation.new(nil, [], Integer) },
         str: ->(_) { Annotation.new(nil, [], String) },
         const: ->(node) { Annotation.new(nil, [], type: node.children.last, on: :collection) }
