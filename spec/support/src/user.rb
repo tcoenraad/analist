@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+class SimpleUser; end
+
 class User < ActiveRecord::Base
   def random_string
     'lorem ipsum'

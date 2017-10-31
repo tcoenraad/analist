@@ -37,7 +37,7 @@ module Analist
     end
 
     def to_namespace(node)
-      return unless node.respond_to?(:children)
+      return [] unless node.respond_to?(:children)
 
       _receiver, name = node.children
       [to_namespace(node.children.first), name].flatten.compact
