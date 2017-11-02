@@ -6,6 +6,10 @@ AllCops:
     - 'vendor/**/*'
     - 'spec/support/**/*'
 
+Metrics/AbcSize:
+  Exclude:
+    - 'lib/analist/annotator.rb'
+
 Metrics/BlockLength:
   Exclude:
     - 'analist.gemspec'

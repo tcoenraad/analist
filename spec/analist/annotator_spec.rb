@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.describe Analist::Annotator do
-  let(:headers) {}
-  let(:resources) do
-    { schema: Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql'),
-      headers: Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
-  end
-
   describe '#annotate' do
     subject(:annotation) { annotated_node.annotation }
+
+    let(:resources) do
+      { schema: Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql'),
+        headers: Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+    end
 
     let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
 
@@ -162,7 +161,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'with annotating blocks, handle scope' do
+    context 'when annotating blocks, handle scope' do
       let(:expression) { 'var = 1 ; [].each { var ; var = "a"; var } ; var' }
 
       it do
@@ -188,6 +187,29 @@ RSpec.describe Analist::Annotator do
       it do
         expect(annotated_node.children[2].annotation).to eq(
           Analist::Annotation.new(nil, [], Integer)
+        )
+      end
+    end
+
+    context 'when annotating methods, handle internal references' do
+      subject(:annotated_node) do
+        described_class.annotate(node, headers: headers)
+      end
+
+      let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
+      let(:headers) { Analist::Headerizer.headerize([node]) }
+
+      it { expect(annotated_node.children[2].children[1].children[0]).to eq(:random_number_alias) }
+      it do
+        expect(annotated_node.children[2].children[1].children[2].annotation).to eq(
+          Analist::Annotation.new(nil, [], Integer)
+        )
+      end
+
+      it { expect(annotated_node.children[2].children[3].children[1]).to eq(:qotd_alias) }
+      it do
+        expect(annotated_node.children[2].children[3].children[3].annotation).to eq(
+          Analist::Annotation.new(nil, [], String)
         )
       end
     end
