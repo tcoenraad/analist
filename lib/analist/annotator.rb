@@ -42,7 +42,10 @@ module Analist
         if ENV['ANALIST_DEBUG']
           raise NotImplementedError, "Node type `#{node.type}` cannot be annotated"
         end
-        node
+        AnnotatedNode.new(node, node.children,
+                          Analist::Annotation.new(Analist::AnnotationTypeUnknown,
+                                                  Analist::AnnotationTypeUnknown,
+                                                  Analist::AnnotationTypeUnknown))
       end
     end
 
@@ -86,13 +89,16 @@ module Analist
       resources[:symbol_table].store(variable, value.annotation)
 
       AnnotatedNode.new(node, annotated_children,
-                        Analist::Annotation.new(nil, [], value.annotation.return_type[:type]))
+                        Analist::Annotation.new(nil, [], value.annotation.return_type.fetch(:type)))
     end
 
     def annotate_local_variable(node, resources)
       annotated_children = node.children.map { |n| annotate(n, resources) }
       AnnotatedNode.new(node, annotated_children,
-                        resources[:symbol_table].retrieve(annotated_children.first))
+                        resources[:symbol_table].retrieve(annotated_children.first) ||
+                        Analist::Annotation.new(Analist::AnnotationTypeUnknown,
+                                                Analist::AnnotationTypeUnknown,
+                                                Analist::AnnotationTypeUnknown))
     end
 
     def annotate_module(node, resources)
@@ -105,7 +111,7 @@ module Analist
                         Analist::Annotations.primitive_annotations[node.type].call(node))
     end
 
-    def annotate_send(node, resources) # rubocop:disable Metrics/AbcSize
+    def annotate_send(node, resources)
       _receiver, method, = node.children
 
       if Analist::Annotations.send_annotations.keys.include?(method)
@@ -127,7 +133,7 @@ module Analist
       annotated_children = node.children.map { |n| annotate(n, resources) }
       annotated_receiver, _method, *args = annotated_children
 
-      receiver_type = annotated_receiver.annotation.return_type if annotated_receiver
+      receiver_type = annotated_receiver&.annotation&.return_type
 
       return_type = lookup_return_type_from_headers(annotated_children, resources) ||
                     lookup_return_type_from_schema(annotated_children, resources[:schema]) ||
