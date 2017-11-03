@@ -161,6 +161,21 @@ RSpec.describe Analist::Annotator do
       end
     end
 
+    context 'when annotating a variable assignment and reference on an object' do
+      let(:expression) { 'var = User.first ; var.id' }
+
+      it do
+        expect(annotated_node.children[0].annotation).to eq Analist::Annotation.new(
+          nil, [], type: :User, on: :instance
+        )
+      end
+      it do
+        expect(annotated_node.children[1].annotation).to eq Analist::Annotation.new(
+          { type: :User, on: :instance }, [], Integer
+        )
+      end
+    end
+
     context 'when annotating blocks, handle scope' do
       let(:expression) { 'var = 1 ; [].each { var ; var = "a"; var } ; var' }
 

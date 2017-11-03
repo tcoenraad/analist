@@ -6,6 +6,10 @@ require 'analist/symbol_table'
 
 module Analist
   module Annotator
+    UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::AnnotationTypeUnknown,
+                                                      Analist::AnnotationTypeUnknown,
+                                                      Analist::AnnotationTypeUnknown).freeze
+
     module_function
 
     def annotate(node, resources = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/LineLength
@@ -42,10 +46,7 @@ module Analist
         if ENV['ANALIST_DEBUG']
           raise NotImplementedError, "Node type `#{node.type}` cannot be annotated"
         end
-        AnnotatedNode.new(node, node.children,
-                          Analist::Annotation.new(Analist::AnnotationTypeUnknown,
-                                                  Analist::AnnotationTypeUnknown,
-                                                  Analist::AnnotationTypeUnknown))
+        AnnotatedNode.new(node, node.children, UNKNOWN_ANNOTATION_TYPE)
       end
     end
 
@@ -89,16 +90,14 @@ module Analist
       resources[:symbol_table].store(variable, value.annotation)
 
       AnnotatedNode.new(node, annotated_children,
-                        Analist::Annotation.new(nil, [], value.annotation.return_type.fetch(:type)))
+                        Analist::Annotation.new(nil, [], value.annotation.return_type))
     end
 
     def annotate_local_variable(node, resources)
       annotated_children = node.children.map { |n| annotate(n, resources) }
       AnnotatedNode.new(node, annotated_children,
                         resources[:symbol_table].retrieve(annotated_children.first) ||
-                        Analist::Annotation.new(Analist::AnnotationTypeUnknown,
-                                                Analist::AnnotationTypeUnknown,
-                                                Analist::AnnotationTypeUnknown))
+                        UNKNOWN_ANNOTATION_TYPE)
     end
 
     def annotate_module(node, resources)
