@@ -115,6 +115,8 @@ module Analist
 
       if Analist::Annotations.send_annotations.keys.include?(method)
         annotated_children = node.children.map { |n| annotate(n, resources) }
+        return UNKNOWN_ANNOTATION_TYPE unless annotated_children.first
+
         receiver_return_type = annotated_children.first.annotation.return_type[:type]
         return AnnotatedNode.new(
           node,
@@ -134,9 +136,9 @@ module Analist
 
       receiver_type = annotated_receiver&.annotation&.return_type
 
-      return_type = lookup_return_type_from_headers(annotated_children, resources) ||
-                    lookup_return_type_from_schema(annotated_children, resources[:schema]) ||
-                    AnnotationTypeUnknown
+      return_type = lookup_return_type_from_headers(annotated_children, resources)
+      return_type ||= lookup_return_type_from_schema(annotated_children, resources[:schema])
+      return_type ||= AnnotationTypeUnknown
 
       AnnotatedNode.new(node, annotated_children,
                         Analist::Annotation.new(receiver_type, args, return_type))
@@ -152,7 +154,8 @@ module Analist
                      resources[:symbol_table].scope[0..-2].join('::')
                    end
 
-      method_name = if resources[:symbol_table].scope.last.to_s.start_with?('self.')
+      method_name = if resources[:symbol_table].scope.last.to_s.start_with?('self.') ||
+                       receiver&.annotation&.return_type&.fetch(:on, nil) == :collection
                       :"self.#{method}"
                     else
                       method
@@ -167,6 +170,8 @@ module Analist
       return unless annotated_children.first
 
       receiver, method = annotated_children
+
+      return unless receiver.annotation.return_type[:on] == :instance
 
       table_name = receiver.annotation.return_type[:type].to_s.downcase.pluralize
       schema[table_name].lookup_type_for_method(method.to_s) if schema.table_exists?(table_name)

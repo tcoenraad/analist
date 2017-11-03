@@ -8,6 +8,7 @@ AllCops:
 
 Metrics/AbcSize:
   Exclude:
+    - 'lib/analist/annotations.rb'
     - 'lib/analist/annotator.rb'
     - 'lib/analist/checker.rb'
 

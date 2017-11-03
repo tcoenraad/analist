@@ -13,7 +13,7 @@ module Analist
 
       def_delegators :schema, :table_name, :find_type_for, :[]
 
-      def initialize(schema)
+      def initialize(schema = {})
         @schema = schema
       end
 

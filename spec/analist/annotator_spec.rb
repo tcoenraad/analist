@@ -4,11 +4,9 @@ RSpec.describe Analist::Annotator do
   describe '#annotate' do
     subject(:annotation) { annotated_node.annotation }
 
-    let(:resources) do
-      { schema: Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql'),
-        headers: Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
-    end
-
+    let(:resources) { { schema: schema, headers: headers } }
+    let(:schema) { Analist::SQL::Schema.new }
+    let(:headers) { Analist::HeaderTable.new }
     let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
 
     context 'when annotating an unknown function call' do
@@ -75,13 +73,24 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating a known property on a Active Record object' do
+    context 'when annotating a known database property on a Active Record object' do
+      let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
       let(:expression) { 'User.first.id' }
 
       it do
         expect(annotation).to eq(
           Analist::Annotation.new({ type: :User, on: :instance }, [], Integer)
         )
+      end
+    end
+
+    context 'when annotating a known database property on a Active Record collection' do
+      let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+      let(:expression) { 'User.id' }
+
+      it do
+        expect(annotation).to eq(Analist::Annotation.new({ type: :User, on: :collection }, [],
+                                                         Analist::AnnotationTypeUnknown))
       end
     end
 
@@ -95,11 +104,35 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating an user-defined method' do
+    context 'when annotating an user-defined instance method' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+
       let(:expression) { 'User.first.full_name' }
 
       it do
         expect(annotation).to eq Analist::Annotation.new({ type: :User, on: :instance }, [], String)
+      end
+    end
+
+    context 'when annotating an user-defined instance method as class method' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+
+      let(:expression) { 'User.full_name' }
+
+      it do
+        expect(annotation).to eq Analist::Annotation.new({ type: :User, on: :collection }, [],
+                                                         Analist::AnnotationTypeUnknown)
+      end
+    end
+
+    context 'when annotating an user-defined class method on a Active Record collection' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+
+      let(:expression) { 'User.anonymous_name' }
+
+      it do
+        expect(annotation).to eq Analist::Annotation.new({ type: :User, on: :collection }, [],
+                                                         String)
       end
     end
 
@@ -162,6 +195,8 @@ RSpec.describe Analist::Annotator do
     end
 
     context 'when annotating a variable assignment and reference on an object' do
+      let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+
       let(:expression) { 'var = User.first ; var.id' }
 
       it do
@@ -212,7 +247,7 @@ RSpec.describe Analist::Annotator do
       end
 
       let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
-      let(:headers) { Analist::Headerizer.headerize([node]) }
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
 
       it { expect(annotated_node.children[2].children[1].children[0]).to eq(:random_number_alias) }
       it do
@@ -225,6 +260,22 @@ RSpec.describe Analist::Annotator do
       it do
         expect(annotated_node.children[2].children[3].children[3].annotation).to eq(
           Analist::Annotation.new(nil, [], String)
+        )
+      end
+    end
+
+    context 'when annotating object creation' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
+      let(:expression) { 'var = Klass.new ; var.random_number' }
+
+      it do
+        expect(annotated_node.children[0].annotation).to eq Analist::Annotation.new(
+          nil, [], type: :Klass, on: :instance
+        )
+      end
+      it do
+        expect(annotated_node.children[1].annotation).to eq Analist::Annotation.new(
+          { type: :Klass, on: :instance }, [], Integer
         )
       end
     end
