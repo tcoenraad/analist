@@ -39,5 +39,13 @@ module Analist
       table.delete(level)
       @level = level - 1
     end
+
+    def current_scope_klass?
+      scope.last.to_s.start_with?('self.')
+    end
+
+    def current_klass_name
+      resources[:symbol_table].scope[0..-2].join('::')
+    end
   end
 end

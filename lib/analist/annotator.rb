@@ -12,7 +12,7 @@ module Analist
 
     module_function
 
-    def annotate(node, resources = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/LineLength
+    def annotate(node, resources = {}) # rubocop:disable Metrics/CyclomaticComplexity
       resources[:symbol_table] ||= SymbolTable.new
 
       return node unless node.respond_to?(:type)
@@ -148,18 +148,17 @@ module Analist
       return unless resources[:headers]
 
       receiver, method = annotated_children
+
+      klass_method = resources[:symbol_table].current_scope_klass? ||
+                     receiver&.annotation&.return_type&.fetch(:on, nil) == :collection
+
+      method_name = klass_method ? :"self.#{method}" : method
+
       klass_name = if receiver
                      receiver.annotation.return_type[:type].to_s
                    else
-                     resources[:symbol_table].scope[0..-2].join('::')
+                     resources[:symbol_table].current_klass_name
                    end
-
-      method_name = if resources[:symbol_table].scope.last.to_s.start_with?('self.') ||
-                       receiver&.annotation&.return_type&.fetch(:on, nil) == :collection
-                      :"self.#{method}"
-                    else
-                      method
-                    end
 
       last_statement = resources[:headers].retrieve_method(method_name, klass_name)&.children&.last
       annotate(last_statement).annotation.return_type if last_statement
