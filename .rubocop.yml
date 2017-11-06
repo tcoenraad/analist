@@ -6,6 +6,12 @@ AllCops:
     - 'vendor/**/*'
     - 'spec/support/**/*'
 
+Metrics/AbcSize:
+  Exclude:
+    - 'lib/analist/annotations.rb'
+    - 'lib/analist/annotator.rb'
+    - 'lib/analist/checker.rb'
+
 Metrics/BlockLength:
   Exclude:
     - 'analist.gemspec'
@@ -27,3 +33,6 @@ Metrics/ModuleLength:
 
 Style/Documentation:
   Enabled: false
+
+RSpec/NestedGroups:
+  Max: 4

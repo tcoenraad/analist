@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Analist::SymbolTable do
-  subject(:symbol_table) { Class.new(described_class) }
+  subject(:symbol_table) { described_class.new }
 
   describe '#retrieve' do
     it { expect(symbol_table.retrieve(:var)).to be_nil }
