@@ -34,7 +34,7 @@ module Analist
       node.children.flat_map { |n| check(n) }.compact
     end
 
-    def check_send(node) # rubocop:disable Metrics/AbcSize
+    def check_send(node)
       return [] if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
 
       receiver, _method_name, *args = node.children

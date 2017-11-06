@@ -35,13 +35,6 @@ module Analist
             Array => Annotation.new(Array, [Array], Array)
           }[receiver_return_type]
         end,
-        upcase: ->(_) { Annotation.new(String, [], String) },
-        reverse: lambda do |receiver_return_type|
-          {
-            String => Annotation.new(String, [], String),
-            Array => Annotation.new(Array, [], Array)
-          }[receiver_return_type]
-        end,
         all: lambda do |receiver_return_type|
           Annotation.new(
             { type: receiver_return_type, on: :collection },
@@ -55,7 +48,21 @@ module Analist
             [],
             type: receiver_return_type, on: :instance
           )
-        end
+        end,
+        new: lambda do |receiver_return_type|
+          Annotation.new(
+            { type: receiver_return_type, on: :collection },
+            [],
+            type: receiver_return_type, on: :instance
+          )
+        end,
+        reverse: lambda do |receiver_return_type|
+          {
+            String => Annotation.new(String, [], String),
+            Array => Annotation.new(Array, [], Array)
+          }[receiver_return_type]
+        end,
+        upcase: ->(_) { Annotation.new(String, [], String) }
       }
     end
 
