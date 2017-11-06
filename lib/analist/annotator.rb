@@ -2,6 +2,7 @@
 
 require 'active_support/inflector'
 require 'analist/annotations'
+require 'analist/resolve_lookup'
 require 'analist/symbol_table'
 
 module Analist
@@ -136,44 +137,12 @@ module Analist
 
       receiver_type = annotated_receiver&.annotation&.return_type
 
-      return_type = lookup_return_type_from_headers(annotated_children, resources)
-      return_type ||= lookup_return_type_from_schema(annotated_children, resources[:schema])
+      return_type = Analist::ResolveLookup::Headers.new(annotated_children, resources).return_type
+      return_type ||= Analist::ResolveLookup::Schema.new(annotated_children, resources).return_type
       return_type ||= AnnotationTypeUnknown
 
       AnnotatedNode.new(node, annotated_children,
                         Analist::Annotation.new(receiver_type, args, return_type))
-    end
-
-    def lookup_return_type_from_headers(annotated_children, resources)
-      return unless resources[:headers]
-
-      receiver, method = annotated_children
-
-      klass_method = resources[:symbol_table].current_scope_klass? ||
-                     receiver&.annotation&.return_type&.fetch(:on, nil) == :collection
-
-      method_name = klass_method ? :"self.#{method}" : method
-
-      klass_name = if receiver
-                     receiver.annotation.return_type[:type].to_s
-                   else
-                     resources[:symbol_table].current_klass_name
-                   end
-
-      last_statement = resources[:headers].retrieve_method(method_name, klass_name)&.children&.last
-      annotate(last_statement).annotation.return_type if last_statement
-    end
-
-    def lookup_return_type_from_schema(annotated_children, schema)
-      return unless schema
-      return unless annotated_children.first
-
-      receiver, method = annotated_children
-
-      return unless receiver.annotation.return_type[:on] == :instance
-
-      table_name = receiver.annotation.return_type[:type].to_s.downcase.pluralize
-      schema[table_name].lookup_type_for_method(method.to_s) if schema.table_exists?(table_name)
     end
   end
 end

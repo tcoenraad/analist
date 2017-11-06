@@ -104,7 +104,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating an user-defined instance method' do
+    context 'when annotating a user-defined instance method' do
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
 
       let(:expression) { 'User.first.full_name' }
@@ -114,7 +114,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating an user-defined instance method as class method' do
+    context 'when annotating a user-defined instance method as class method' do
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
 
       let(:expression) { 'User.full_name' }
@@ -125,7 +125,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating an user-defined class method on a Active Record collection' do
+    context 'when annotating a user-defined class method on a Active Record collection' do
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
 
       let(:expression) { 'User.anonymous_name' }
@@ -264,7 +264,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating object creation' do
+    context 'when annotating variable assignment with object creation' do
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
       let(:expression) { 'var = Klass.new ; var.random_number' }
 

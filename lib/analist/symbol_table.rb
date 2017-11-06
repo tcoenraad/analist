@@ -45,7 +45,7 @@ module Analist
     end
 
     def current_klass_name
-      resources[:symbol_table].scope[0..-2].join('::')
+      scope[0..-2].join('::')
     end
   end
 end
