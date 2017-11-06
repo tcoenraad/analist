@@ -241,24 +241,59 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating methods, handle internal references' do
+    context 'when annotating methods, handle internal references w.r.t. instance methods' do
       subject(:annotated_node) do
         described_class.annotate(node, headers: headers)
       end
 
       let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
+      let(:instance_random_number_alias_node) do
+        annotated_node.children[2].children[2].children
+      end
+      let(:class_random_number_alias_node) do
+        annotated_node.children[2].children[3].children
+      end
 
-      it { expect(annotated_node.children[2].children[1].children[0]).to eq(:random_number_alias) }
+      it { expect(instance_random_number_alias_node[0]).to eq(:instance_random_number_alias) }
       it do
-        expect(annotated_node.children[2].children[1].children[2].annotation).to eq(
+        expect(instance_random_number_alias_node[2].annotation).to eq(
           Analist::Annotation.new(nil, [], Integer)
         )
       end
 
-      it { expect(annotated_node.children[2].children[3].children[1]).to eq(:qotd_alias) }
+      it { expect(class_random_number_alias_node[1]).to eq(:class_random_number_alias) }
       it do
-        expect(annotated_node.children[2].children[3].children[3].annotation).to eq(
+        expect(class_random_number_alias_node[3].annotation).to eq(
+          Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+        )
+      end
+    end
+
+    context 'when annotating methods, handle internal references w.r.t. class methods' do
+      subject(:annotated_node) do
+        described_class.annotate(node, headers: headers)
+      end
+
+      let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
+      let(:instance_qotd_alias_node) do
+        annotated_node.children[2].children[4].children
+      end
+      let(:class_qotd_alias_node) do
+        annotated_node.children[2].children[5].children
+      end
+
+      it { expect(instance_qotd_alias_node[0]).to eq(:instance_qotd_alias) }
+      it do
+        expect(instance_qotd_alias_node[2].annotation).to eq(
+          Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+        )
+      end
+
+      it { expect(class_qotd_alias_node[1]).to eq(:class_qotd_alias) }
+      it do
+        expect(class_qotd_alias_node[3].annotation).to eq(
           Analist::Annotation.new(nil, [], String)
         )
       end
