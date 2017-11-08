@@ -16,7 +16,13 @@ RSpec.describe Analist::Annotator do
     end
 
     context 'when annotating an unknown property on a variable' do
-      let(:expression) { 'a.unknown_property' }
+      let(:expression) { 'var.property' }
+
+      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+    end
+
+    context 'when annotating an unknown property on a known method' do
+      let(:expression) { 'all.property' }
 
       it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
     end

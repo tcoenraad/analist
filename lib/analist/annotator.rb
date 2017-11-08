@@ -116,7 +116,10 @@ module Analist
 
       if Analist::Annotations.send_annotations.keys.include?(method)
         annotated_children = node.children.map { |n| annotate(n, resources) }
-        return UNKNOWN_ANNOTATION_TYPE unless annotated_children.first
+
+        if annotated_children.first.nil?
+          return AnnotatedNode.new(node, annotated_children, UNKNOWN_ANNOTATION_TYPE)
+        end
 
         receiver_return_type = annotated_children.first.annotation.return_type[:type]
         return AnnotatedNode.new(
