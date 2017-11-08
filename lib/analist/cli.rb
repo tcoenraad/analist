@@ -2,7 +2,6 @@
 
 require 'colorize'
 require 'parser/ruby24'
-require 'pry'
 require 'optparse'
 
 require 'analist'
