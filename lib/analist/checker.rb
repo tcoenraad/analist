@@ -7,7 +7,7 @@ module Analist
     module_function
 
     def check(node) # rubocop:disable Metrics/CyclomaticComplexity
-      return unless node.respond_to?(:type)
+      return [] unless node.respond_to?(:type)
 
       case node.type
       when :begin
