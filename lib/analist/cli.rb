@@ -6,10 +6,8 @@ require 'pry'
 require 'optparse'
 
 require 'analist'
-require 'analist/config'
 require 'analist/file_finder'
 require 'analist/text_helper'
-require 'analist/version'
 
 module Analist
   class CLI
