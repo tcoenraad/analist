@@ -21,10 +21,10 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency 'activesupport'
-  spec.add_runtime_dependency 'colorize'
-  spec.add_runtime_dependency 'parser'
-  spec.add_runtime_dependency 'pg_query'
+  spec.add_runtime_dependency 'activesupport', '~> 5.1.4'
+  spec.add_runtime_dependency 'colorize', '~> 0.8.1'
+  spec.add_runtime_dependency 'parser', '= 2.4.0.0'
+  spec.add_runtime_dependency 'pg_query', '~> 0.13.5'
 
   spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-rspec'
