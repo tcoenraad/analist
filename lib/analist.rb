@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require 'analist/version'
+
 require 'analist/annotated_node'
 require 'analist/annotator'
 require 'analist/checker'
+require 'analist/config'
 require 'analist/headerizer'
 require 'analist/sql/schema'
 
