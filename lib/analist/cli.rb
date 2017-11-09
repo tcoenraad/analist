@@ -42,7 +42,7 @@ module Analist
 
       print_collected_errors
 
-      error_count = collected_errors.values.sum(&:count)
+      error_count = collected_errors.values.inject(0) { |sum, e| sum + e.count }
       puts "#{pluralize(files.size, 'file')} inspected, "\
         "#{pluralize(error_count, 'error')} found"
 
