@@ -15,10 +15,10 @@ class CommonHelpers
   end
 
   def self.parse_file(file)
-    Parser::Ruby24.parse(IO.read(file))
+    parse(IO.read(file))
   end
 
   def self.parse_sql(filename)
-    PgQuery.parse(File.read(filename)).tree
+    PgQuery.parse(IO.read(filename)).tree
   end
 end

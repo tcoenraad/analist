@@ -7,6 +7,7 @@ require 'analist/annotator'
 require 'analist/checker'
 require 'analist/config'
 require 'analist/headerizer'
+require 'analist/ruby_extractor'
 require 'analist/sql/schema'
 
 module Analist
