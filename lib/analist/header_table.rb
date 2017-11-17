@@ -5,7 +5,7 @@ require 'ostruct'
 module Analist
   class HeaderTable
     def self.read_from_file(filename)
-      node = Analist.to_ast(filename)
+      node = Analist.parse_file(filename)
       Headerizer.headerize([node])
     end
 

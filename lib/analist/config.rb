@@ -20,9 +20,17 @@ module Analist
       @options['Exclude']
     end
 
+    def global_types
+      @options['GlobalDefined'].each_with_object({}) do |global_type, hash|
+        hash[global_type['identifier'].to_sym] = global_type['type'].to_sym
+        hash
+      end
+    end
+
     def default_options
       {
-        'Exclude' => []
+        'Exclude' => [],
+        'GlobalDefined' => {}
       }
     end
   end

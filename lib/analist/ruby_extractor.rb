@@ -3,7 +3,7 @@
 module Analist
   class RubyExtractor
     def self.extract(string)
-      string.scan(erb_to_ruby_regex).join("\n")
+      string.scan(erb_to_ruby_regex).flatten.map { |rb| rb.nil? ? "\n" : "#{rb};" }.join
     end
 
     def self.extract_file(file)
@@ -11,7 +11,7 @@ module Analist
     end
 
     def self.erb_to_ruby_regex
-      /<%(?:=|-)?\s*(.+?)\s*%>/
+      /<%(?:=|-)?\s*(.+?)\s*-?%>|\n/m
     end
   end
 end

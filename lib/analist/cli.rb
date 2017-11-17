@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'colorize'
-require 'parser/ruby24'
 require 'optparse'
 
 require 'analist'
@@ -42,7 +41,7 @@ module Analist
 
       print_collected_errors
 
-      error_count = collected_errors.values.inject(0) { |sum, e| sum + e.count }
+      error_count = collected_errors.inject(0) { |sum, e| sum + e.count }
       puts "#{pluralize(files.size, 'file')} inspected, "\
         "#{pluralize(error_count, 'error')} found"
 
@@ -50,16 +49,17 @@ module Analist
     end
 
     def print_collected_errors
-      collected_errors.each do |file, errors|
+      collected_errors.each do |errors|
         errors.each do |error|
-          puts "#{Analist::FileFinder.relative_path(file).blue}:#{error}"
+          puts error
         end
       end
     end
 
     def collected_errors
       @collected_errors ||= begin
-        Analist.analyze(files, schema_filename: @options.fetch(:schema, nil))
+        Analist.analyze(files, schema_filename: @options.fetch(:schema, nil),
+                               global_types: config.global_types)
       end
     end
 

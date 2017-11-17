@@ -2,12 +2,13 @@
 
 module Analist
   class Annotation
-    attr_reader :receiver_type, :args_types, :return_type
+    attr_reader :receiver_type, :args_types, :return_type, :hint
 
-    def initialize(receiver_type, args_types, return_type)
+    def initialize(receiver_type, args_types, return_type, hint: nil)
       @receiver_type = receiver_type.is_a?(Hash) ? receiver_type : { type: receiver_type }
       @args_types = args_types
       @return_type = return_type.is_a?(Hash) ? return_type : { type: return_type }
+      @hint = hint
     end
 
     def ==(other)

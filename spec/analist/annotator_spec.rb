@@ -4,9 +4,10 @@ RSpec.describe Analist::Annotator do
   describe '#annotate' do
     subject(:annotation) { annotated_node.annotation }
 
-    let(:resources) { { schema: schema, headers: headers } }
-    let(:schema) { Analist::SQL::Schema.new }
+    let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
+    let(:schema) { Analist::SQL::Schema.new  }
     let(:headers) { Analist::HeaderTable.new }
+    let(:symbol_table) { Analist::SymbolTable.new }
     let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
 
     context 'when annotating an unknown function call' do
@@ -249,10 +250,10 @@ RSpec.describe Analist::Annotator do
 
     context 'when annotating methods, handle internal references w.r.t. instance methods' do
       subject(:annotated_node) do
-        described_class.annotate(node, headers: headers)
+        described_class.annotate(node, resources)
       end
 
-      let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
+      let(:node) { Analist.parse_file('./spec/support/src/klass.rb') }
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
       let(:instance_random_number_alias_node) do
         annotated_node.children[2].children[2].children
@@ -278,10 +279,10 @@ RSpec.describe Analist::Annotator do
 
     context 'when annotating methods, handle internal references w.r.t. class methods' do
       subject(:annotated_node) do
-        described_class.annotate(node, headers: headers)
+        described_class.annotate(node, resources)
       end
 
-      let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
+      let(:node) { Analist.parse_file('./spec/support/src/klass.rb') }
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
       let(:instance_qotd_alias_node) do
         annotated_node.children[2].children[4].children

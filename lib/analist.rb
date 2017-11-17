@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
+require 'parser/ruby24'
+require 'pry'
+
 require 'analist/version'
 
 require 'analist/annotated_node'
 require 'analist/annotator'
 require 'analist/checker'
 require 'analist/config'
+require 'analist/inline_erb_files'
 require 'analist/headerizer'
 require 'analist/ruby_extractor'
 require 'analist/sql/schema'
@@ -13,26 +17,31 @@ require 'analist/sql/schema'
 module Analist
   module_function
 
-  def analyze(files, schema_filename: nil)
-    nodes = files.each_with_object({}) do |filename, h|
-      h[filename] = to_ast(filename)
-      h
-    end
+  def analyze(files, schema_filename: nil, global_types: {})
     schema = Analist::SQL::Schema.read_from_file(schema_filename) if schema_filename
-    headers = Headerizer.headerize(nodes.values)
 
-    nodes.each_with_object({}) do |(filename, node), errors|
-      errors[filename] = analyze_node(node, schema, headers)
+    nodes = files.map { |filename| Analist::InlineErbFiles.inline(parse_file(filename), filename) }
+    headers = Analist::Headerizer.headerize(nodes)
+
+    symbol_table = SymbolTable.new
+    global_types.each do |identifier, type|
+      symbol_table.store(identifier, Analist::Annotation.new(nil, [], type))
     end
+
+    nodes.map { |node| analyze_node(node, schema, headers, symbol_table) }
   end
 
-  def analyze_node(node, schema, headers)
-    resources = { schema: schema, headers: headers }
+  def analyze_node(node, schema, headers, symbol_table)
+    resources = { schema: schema, headers: headers, symbol_table: symbol_table }
     annotated_node = Analist::Annotator.annotate(node, resources)
     Analist::Checker.check(annotated_node)
   end
 
-  def to_ast(file)
-    Parser::Ruby24.parse(IO.read(file))
+  def parse(string)
+    Parser::Ruby24.parse(string)
+  end
+
+  def parse_file(file)
+    parse(IO.read(file))
   end
 end

@@ -6,9 +6,10 @@ RSpec.describe Analist::Checker do
   end
 
   describe '#check' do
-    let(:resources) { { schema: schema, headers: headers } }
+    let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
     let(:schema) { Analist::SQL::Schema.new  }
     let(:headers) { Analist::HeaderTable.new }
+    let(:symbol_table) { Analist::SymbolTable.new }
 
     let(:exp_annotation) { errors.first.expected_annotation }
     let(:act_annotation) { errors.first.actual_annotation }
