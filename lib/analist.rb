@@ -9,8 +9,9 @@ require 'analist/annotated_node'
 require 'analist/annotator'
 require 'analist/checker'
 require 'analist/config'
-require 'analist/inline_erb_files'
+require 'analist/explorer'
 require 'analist/headerizer'
+require 'analist/resolve_lookup'
 require 'analist/ruby_extractor'
 require 'analist/sql/schema'
 
@@ -20,7 +21,7 @@ module Analist
   def analyze(files, schema_filename: nil, global_types: {})
     schema = Analist::SQL::Schema.read_from_file(schema_filename) if schema_filename
 
-    nodes = files.map { |filename| Analist::InlineErbFiles.inline(parse_file(filename), filename) }
+    nodes = files.map { |filename| Analist::Explorer.explore(filename) }
     headers = Analist::Headerizer.headerize(nodes)
 
     symbol_table = SymbolTable.new

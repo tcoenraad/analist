@@ -99,5 +99,14 @@ RSpec.describe Analist::Checker do
         it { expect(act_annotation).to eq Analist::Annotation.new(Integer, [String], Integer) }
       end
     end
+
+    context 'when checking a forgotten decorator' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+      let(:expression) { 'User.first.short_name' }
+
+      it do
+        expect(errors.first).to be_kind_of Analist::DecorateWarning
+      end
+    end
   end
 end

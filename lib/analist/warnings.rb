@@ -9,7 +9,7 @@ module Analist
     end
 
     def to_s
-      "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} DecorateWarning:" \
+      "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} DecorateWarning: " \
         "method `#{@method}' would exist when #{@receiver} is decorated"
     end
   end

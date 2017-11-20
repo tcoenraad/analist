@@ -15,8 +15,9 @@ module Analist
 
       def return_type
         return unless @headers
+        return unless last_statement
 
-        Analist::Annotator.annotate(last_statement, @resources).annotation.return_type if last_statement
+        Analist::Annotator.annotate(last_statement, @resources).annotation.return_type
       end
 
       def klass_method?
@@ -31,7 +32,7 @@ module Analist
 
       def klass_name
         return @receiver.annotation.return_type[:type].to_s if @receiver
-        @symbol_table.current_klass_name
+        @symbol_table.scope[0..-2].join('::')
       end
 
       def last_statement
@@ -60,6 +61,8 @@ module Analist
     end
 
     class Hint
+      class Decorate; end
+
       def initialize(annotated_children, resources)
         @headers = resources[:headers]
         @symbol_table = resources[:symbol_table]
@@ -68,7 +71,7 @@ module Analist
       end
 
       def hint
-        return :decorate if decorate?
+        return Decorate if decorate?
       end
 
       private

@@ -321,5 +321,25 @@ RSpec.describe Analist::Annotator do
         )
       end
     end
+
+    context 'when annotating a forgotten decorator' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+      let(:expression) { 'User.first.short_name' }
+
+      it do
+        expect(annotated_node.annotation.hint).to eq Analist::ResolveLookup::Hint::Decorate
+      end
+    end
+
+    context 'when annotating a decorated method' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+      let(:expression) { 'User.first.decorate.short_name' }
+
+      it do
+        expect(annotated_node.annotation).to eq Analist::Annotation.new(
+          { type: :UserDecorator, on: :instance }, [], String
+        )
+      end
+    end
   end
 end

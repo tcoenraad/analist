@@ -43,6 +43,13 @@ module Analist
             type: receiver_return_type, on: :collection
           )
         end,
+        decorate: lambda do |receiver_return_type|
+          Annotation.new(
+            { type: receiver_return_type, on: :instance },
+            [],
+            type: :"#{receiver_return_type}Decorator", on: :instance
+          )
+        end,
         first: lambda do |receiver_return_type|
           Annotation.new(
             { type: receiver_return_type, on: :collection },

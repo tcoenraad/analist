@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Analist
   class Node < Parser::AST::Node
     attr_reader :filename

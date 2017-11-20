@@ -76,7 +76,8 @@ module Analist
     end
 
     def check_send(node)
-      return [Analist::DecorateWarning.new(node)] if node.annotation.hint == :decorate
+      return [Analist::DecorateWarning.new(node)] if node.annotation.hint ==
+                                                     Analist::ResolveLookup::Hint::Decorate
       return [] if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
 
       receiver, _method_name, *args = node.children
@@ -91,7 +92,7 @@ module Analist
         error = if expected_annotation.args_types.count != actual_annotation.args_types.count
                   Analist::ArgumentError.new(node, expected_number_of_args:
                                                      expected_annotation.args_types.count,
-                                                            actual_number_of_args:
+                                                   actual_number_of_args:
                                                      actual_annotation.args_types.count)
                 else
                   Analist::TypeError.new(node,

@@ -2,6 +2,6 @@ Exclude:
   - 'example.rb'
   - 'vendor/**/*'
 
-GlobalDefined:
+GloballyDefined:
   - identifier: administration
     type: Administration
