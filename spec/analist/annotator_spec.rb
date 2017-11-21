@@ -201,7 +201,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating a variable assignment and reference on an object' do
+    context 'when annotating a variable assignment and reference on an Active Record object' do
       let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
 
       let(:expression) { 'var = User.first ; var.id' }
@@ -338,6 +338,26 @@ RSpec.describe Analist::Annotator do
       it do
         expect(annotated_node.annotation).to eq Analist::Annotation.new(
           { type: :UserDecorator, on: :instance }, [], String
+        )
+      end
+    end
+
+    context 'when annotating an inlined erb file' do
+      before do
+        allow(Analist::Explorer).to receive(:template_path)
+          .and_return('./spec/support/src/users_edit.erb')
+      end
+
+      subject(:annotated_node) { described_class.annotate(explored_file, resources) }
+
+      let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+      let(:explored_file) { Analist::Explorer.explore('./spec/support/src/users_controller.rb') }
+      let(:annotated_edit_node) { annotated_node.children[2].children }
+
+      it { expect(annotated_edit_node[0]).to eq :edit }
+      it do
+        expect(annotated_edit_node[3].annotation).to eq Analist::Annotation.new(
+          { type: :User, on: :instance }, [], Integer
         )
       end
     end

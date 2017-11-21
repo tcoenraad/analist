@@ -45,7 +45,7 @@ module Analist
       method_name = node.children.first
       node = expand_block(node, filename, namespace, method_name)
       if %i[index new edit show destroy].include?(method_name)
-        node = inline_template(node, namepspace, method_name)
+        node = inline_template(node, namespace, method_name)
       end
 
       node
@@ -57,11 +57,11 @@ module Analist
 
     def inline_template(node, namespace, action)
       path = template_path(namespace, action)
-      return unless File.exist?(path)
+      return node unless File.exist?(path)
 
       src = Analist::RubyExtractor.extract_file(path)
       erb_node = Analist.parse(src)
-      node.concat(expand_children(erb_node, path, namespace))
+      node.append(expand_children(erb_node, path, namespace))
     end
 
     def template_path(namespace, action)
