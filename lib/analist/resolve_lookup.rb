@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
+require 'pry'
+
 module Analist
   module ResolveLookup
     class Headers
       def initialize(annotated_children, resources)
+        @resources = resources
         @headers = resources[:headers]
         @symbol_table = resources[:symbol_table]
 
@@ -12,8 +15,9 @@ module Analist
 
       def return_type
         return unless @headers
+        return unless last_statement
 
-        Analist::Annotator.annotate(last_statement).annotation.return_type if last_statement
+        Analist::Annotator.annotate(last_statement, @resources).annotation.return_type
       end
 
       def klass_method?
@@ -28,7 +32,7 @@ module Analist
 
       def klass_name
         return @receiver.annotation.return_type[:type].to_s if @receiver
-        @symbol_table.current_klass_name
+        @symbol_table.scope[0..-2].join('::')
       end
 
       def last_statement
@@ -53,6 +57,32 @@ module Analist
 
       def table_name
         @receiver.annotation.return_type[:type].to_s.downcase.pluralize
+      end
+    end
+
+    class Hint
+      class Decorate; end
+
+      def initialize(annotated_children, resources)
+        @headers = resources[:headers]
+        @symbol_table = resources[:symbol_table]
+
+        @receiver, @method = annotated_children
+      end
+
+      def hint
+        return Decorate if decorate?
+      end
+
+      private
+
+      def decorate?
+        return unless @receiver
+        return unless @headers
+
+        klass = "#{@receiver.annotation.return_type[:type]}Decorator"
+        return unless @headers.retrieve_method(@method, klass)
+        true
       end
     end
   end

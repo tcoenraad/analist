@@ -4,9 +4,10 @@ RSpec.describe Analist::Annotator do
   describe '#annotate' do
     subject(:annotation) { annotated_node.annotation }
 
-    let(:resources) { { schema: schema, headers: headers } }
-    let(:schema) { Analist::SQL::Schema.new }
+    let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
+    let(:schema) { Analist::SQL::Schema.new  }
     let(:headers) { Analist::HeaderTable.new }
+    let(:symbol_table) { Analist::SymbolTable.new }
     let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
 
     context 'when annotating an unknown function call' do
@@ -200,7 +201,7 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating a variable assignment and reference on an object' do
+    context 'when annotating a variable assignment and reference on an Active Record object' do
       let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
 
       let(:expression) { 'var = User.first ; var.id' }
@@ -249,10 +250,10 @@ RSpec.describe Analist::Annotator do
 
     context 'when annotating methods, handle internal references w.r.t. instance methods' do
       subject(:annotated_node) do
-        described_class.annotate(node, headers: headers)
+        described_class.annotate(node, resources)
       end
 
-      let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
+      let(:node) { Analist.parse_file('./spec/support/src/klass.rb') }
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
       let(:instance_random_number_alias_node) do
         annotated_node.children[2].children[2].children
@@ -278,10 +279,10 @@ RSpec.describe Analist::Annotator do
 
     context 'when annotating methods, handle internal references w.r.t. class methods' do
       subject(:annotated_node) do
-        described_class.annotate(node, headers: headers)
+        described_class.annotate(node, resources)
       end
 
-      let(:node) { Analist.to_ast('./spec/support/src/klass.rb') }
+      let(:node) { Analist.parse_file('./spec/support/src/klass.rb') }
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
       let(:instance_qotd_alias_node) do
         annotated_node.children[2].children[4].children
@@ -317,6 +318,46 @@ RSpec.describe Analist::Annotator do
       it do
         expect(annotated_node.children[1].annotation).to eq Analist::Annotation.new(
           { type: :Klass, on: :instance }, [], Integer
+        )
+      end
+    end
+
+    context 'when annotating a forgotten decorator' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+      let(:expression) { 'User.first.short_name' }
+
+      it do
+        expect(annotated_node.annotation.hint).to eq Analist::ResolveLookup::Hint::Decorate
+      end
+    end
+
+    context 'when annotating a decorated method' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/user.rb') }
+      let(:expression) { 'User.first.decorate.short_name' }
+
+      it do
+        expect(annotated_node.annotation).to eq Analist::Annotation.new(
+          { type: :UserDecorator, on: :instance }, [], String
+        )
+      end
+    end
+
+    context 'when annotating an inlined erb file' do
+      before do
+        allow(Analist::Explorer).to receive(:template_path)
+          .and_return('./spec/support/src/users_edit.erb')
+      end
+
+      subject(:annotated_node) { described_class.annotate(explored_file, resources) }
+
+      let(:schema) { Analist::SQL::Schema.read_from_file('./spec/support/sql/users.sql') }
+      let(:explored_file) { Analist::Explorer.explore('./spec/support/src/users_controller.rb') }
+      let(:annotated_edit_node) { annotated_node.children[2].children }
+
+      it { expect(annotated_edit_node[0]).to eq :edit }
+      it do
+        expect(annotated_edit_node[3].annotation).to eq Analist::Annotation.new(
+          { type: :User, on: :instance }, [], Integer
         )
       end
     end

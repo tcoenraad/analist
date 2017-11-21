@@ -1,25 +1,11 @@
 # frozen_string_literal: true
 
 module Analist
-  class NoMethodError
-    attr_reader :line
-
-    def initialize(line, object:, method:)
-      @line = line
-      @object = object
-      @method = method
-    end
-
-    def to_s
-      "#{line} NoMethodError: undefined method `#{@method}' for #{@object}"
-    end
-  end
-
   class TypeError
-    attr_reader :line, :expected_annotation, :actual_annotation
+    attr_reader :expected_annotation, :actual_annotation
 
-    def initialize(line, expected_annotation:, actual_annotation:)
-      @line = line
+    def initialize(node, expected_annotation:, actual_annotation:)
+      @node = node
       @expected_annotation = expected_annotation
       @actual_annotation = actual_annotation
     end
@@ -36,22 +22,23 @@ module Analist
     end
 
     def to_s
-      "#{line} TypeError: #{annotation_difference.join(',')}"
+      "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} TypeError: "\
+        "#{annotation_difference.join(',')}"
     end
   end
 
   class ArgumentError
-    attr_reader :line, :expected_number_of_args, :actual_number_of_args
+    attr_reader :expected_number_of_args, :actual_number_of_args
 
-    def initialize(line, expected_number_of_args:, actual_number_of_args:)
-      @line = line
+    def initialize(node, expected_number_of_args:, actual_number_of_args:)
+      @node = node
       @expected_number_of_args = expected_number_of_args
       @actual_number_of_args = actual_number_of_args
     end
 
     def to_s
-      "#{line} ArgumentError, expected #{expected_number_of_args}, "\
-        "actual: #{actual_number_of_args}"
+      "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} ArgumentError, "\
+        "expected #{@expected_number_of_args}, actual: #{@actual_number_of_args}"
     end
   end
 end

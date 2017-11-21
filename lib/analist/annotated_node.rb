@@ -7,7 +7,7 @@ module Analist
     extend Forwardable
 
     attr_reader :children, :annotation
-    def_delegators :@node, :loc, :type
+    def_delegators :@node, :loc, :type, :filename
 
     def initialize(node, children, annotation)
       @node = node

@@ -43,9 +43,5 @@ module Analist
     def current_scope_klass?
       scope.last.to_s.start_with?('self.')
     end
-
-    def current_klass_name
-      scope[0..-2].join('::')
-    end
   end
 end

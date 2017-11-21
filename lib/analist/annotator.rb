@@ -8,19 +8,19 @@ require 'analist/symbol_table'
 module Analist
   module Annotator
     UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::AnnotationTypeUnknown,
-                                                      Analist::AnnotationTypeUnknown,
+                                                      [Analist::AnnotationTypeUnknown],
                                                       Analist::AnnotationTypeUnknown).freeze
 
     module_function
 
     def annotate(node, resources = {}) # rubocop:disable Metrics/CyclomaticComplexity
-      resources[:symbol_table] ||= SymbolTable.new
-
       return node unless node.respond_to?(:type)
 
       case node.type
       when :args
         annotate_args(node, resources)
+      when :array
+        annotate_array(node, resources)
       when :begin
         annotate_begin(node, resources)
       when :block
@@ -33,10 +33,10 @@ module Analist
         annotate_def(node, resources)
       when :defs
         annotate_defs(node, resources)
+      when :if
+        annotate_if(node, resources)
       when :send
         annotate_send(node, resources)
-      when :array
-        annotate_array(node, resources)
       when :lvasgn
         annotate_local_variable_assignment(node, resources)
       when :lvar
@@ -84,6 +84,10 @@ module Analist
       annotate_block(node, resources, :"self.#{node.children[1]}")
     end
 
+    def annotate_if(node, resources)
+      annotate_block(node, resources)
+    end
+
     def annotate_local_variable_assignment(node, resources)
       annotated_children = node.children.map { |n| annotate(n, resources) }
       variable, value = annotated_children
@@ -102,8 +106,7 @@ module Analist
     end
 
     def annotate_module(node, resources)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
-                        Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
+      annotate_block(node, resources, node.children.first)
     end
 
     def annotate_primitive(node)
@@ -121,15 +124,18 @@ module Analist
           return AnnotatedNode.new(node, annotated_children, UNKNOWN_ANNOTATION_TYPE)
         end
 
-        receiver_return_type = annotated_children.first.annotation.return_type[:type]
+        receiver_return_type = annotated_children.first.annotation.return_type
         return AnnotatedNode.new(
           node,
           annotated_children,
           Analist::Annotations.send_annotations[method].call(receiver_return_type) ||
-            Analist::Annotation.new(receiver_return_type, Analist::AnnotationTypeUnknown,
+            Analist::Annotation.new(receiver_return_type[:type], [Analist::AnnotationTypeUnknown],
                                     Analist::AnnotationTypeUnknown)
         )
       end
+
+      annotation = resources[:symbol_table].retrieve(method)
+      return AnnotatedNode.new(node, annotated_children, annotation) if annotation
 
       annotate_send_unknown_method(node, resources)
     end
@@ -144,8 +150,10 @@ module Analist
       return_type ||= Analist::ResolveLookup::Schema.new(annotated_children, resources).return_type
       return_type ||= AnnotationTypeUnknown
 
+      hint = Analist::ResolveLookup::Hint.new(annotated_children, resources).hint
+
       AnnotatedNode.new(node, annotated_children,
-                        Analist::Annotation.new(receiver_type, args, return_type))
+                        Analist::Annotation.new(receiver_type, args, return_type, hint: hint))
     end
   end
 end

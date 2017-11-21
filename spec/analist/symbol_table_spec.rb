@@ -40,4 +40,16 @@ RSpec.describe Analist::SymbolTable do
     it { expect(symbol_table.retrieve(:var1)).to eq 'a' }
     it { expect(symbol_table.retrieve(:var2)).to be_nil }
   end
+
+  describe '#current_scope_klass?' do
+    context 'when in a class method' do
+      before { symbol_table.enter_scope('self.class_method') }
+      it { expect(symbol_table.current_scope_klass?).to eq true }
+    end
+
+    context 'when in a instance method' do
+      before { symbol_table.enter_scope('instance_method') }
+      it { expect(symbol_table.current_scope_klass?).to eq false }
+    end
+  end
 end
