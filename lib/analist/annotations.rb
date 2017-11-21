@@ -34,41 +34,41 @@ module Analist
             Integer => Annotation.new(Integer, [Integer], Integer),
             String => Annotation.new(String, [String], String),
             Array => Annotation.new(Array, [Array], Array)
-          }[receiver_return_type]
+          }[receiver_return_type[:type]]
         end,
         all: lambda do |receiver_return_type|
           Annotation.new(
-            { type: receiver_return_type, on: :collection },
+            { type: receiver_return_type[:type], on: :collection },
             [],
-            type: receiver_return_type, on: :collection
+            type: receiver_return_type[:type], on: :collection
           )
         end,
         decorate: lambda do |receiver_return_type|
           Annotation.new(
-            { type: receiver_return_type, on: :instance },
+            receiver_return_type,
             [],
-            type: :"#{receiver_return_type}Decorator", on: :instance
+            type: :"#{receiver_return_type[:type]}Decorator", on: receiver_return_type[:on]
           )
         end,
         first: lambda do |receiver_return_type|
           Annotation.new(
-            { type: receiver_return_type, on: :collection },
+            { type: receiver_return_type[:type], on: :collection },
             [],
-            type: receiver_return_type, on: :instance
+            type: receiver_return_type[:type], on: :instance
           )
         end,
         new: lambda do |receiver_return_type|
           Annotation.new(
-            { type: receiver_return_type, on: :collection },
+            { type: receiver_return_type[:type], on: :collection },
             [],
-            type: receiver_return_type, on: :instance
+            type: receiver_return_type[:type], on: :instance
           )
         end,
         reverse: lambda do |receiver_return_type|
           {
             String => Annotation.new(String, [], String),
             Array => Annotation.new(Array, [], Array)
-          }[receiver_return_type]
+          }[receiver_return_type[:type]]
         end,
         upcase: ->(_) { Annotation.new(String, [], String) }
       }

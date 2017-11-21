@@ -124,12 +124,12 @@ module Analist
           return AnnotatedNode.new(node, annotated_children, UNKNOWN_ANNOTATION_TYPE)
         end
 
-        receiver_return_type = annotated_children.first.annotation.return_type[:type]
+        receiver_return_type = annotated_children.first.annotation.return_type
         return AnnotatedNode.new(
           node,
           annotated_children,
           Analist::Annotations.send_annotations[method].call(receiver_return_type) ||
-            Analist::Annotation.new(receiver_return_type, Analist::AnnotationTypeUnknown,
+            Analist::Annotation.new(receiver_return_type[:type], Analist::AnnotationTypeUnknown,
                                     Analist::AnnotationTypeUnknown)
         )
       end
