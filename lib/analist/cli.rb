@@ -4,7 +4,6 @@ require 'colorize'
 require 'optparse'
 
 require 'analist'
-require 'analist/file_finder'
 require 'analist/text_helper'
 
 module Analist

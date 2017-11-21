@@ -14,11 +14,7 @@ module Analist
     def ==(other)
       return false unless other.is_a?(self.class)
 
-      if return_type[:type] == Analist::AnnotationTypeUnknown
-        return [receiver_type] == [other.receiver_type]
-      end
-
-      if args_types == Analist::AnyArgs
+      if args_types == [Analist::AnyArgs]
         return [receiver_type, return_type] == [other.receiver_type, other.return_type]
       end
 
@@ -70,7 +66,7 @@ module Analist
         new: lambda do |receiver_return_type|
           Annotation.new(
             { type: receiver_return_type[:type], on: :collection },
-            Analist::AnyArgs,
+            [Analist::AnyArgs],
             type: receiver_return_type[:type], on: :instance
           )
         end,

@@ -11,7 +11,7 @@ require 'pg_query'
 
 class CommonHelpers
   def self.parse(string)
-    Parser::Ruby24.parse(string)
+    Analist::Explorer.expand(Parser::Ruby24.parse(string), 'filename.rb')
   end
 
   def self.parse_file(file)

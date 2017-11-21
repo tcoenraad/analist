@@ -23,7 +23,7 @@ module Analist
 
     def to_s
       "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} TypeError: "\
-        "#{@annotation_difference.join(',')}"
+        "#{annotation_difference.join(',')}"
     end
   end
 

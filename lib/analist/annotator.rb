@@ -8,7 +8,7 @@ require 'analist/symbol_table'
 module Analist
   module Annotator
     UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::AnnotationTypeUnknown,
-                                                      Analist::AnnotationTypeUnknown,
+                                                      [Analist::AnnotationTypeUnknown],
                                                       Analist::AnnotationTypeUnknown).freeze
 
     module_function
@@ -129,7 +129,7 @@ module Analist
           node,
           annotated_children,
           Analist::Annotations.send_annotations[method].call(receiver_return_type) ||
-            Analist::Annotation.new(receiver_return_type[:type], Analist::AnnotationTypeUnknown,
+            Analist::Annotation.new(receiver_return_type[:type], [Analist::AnnotationTypeUnknown],
                                     Analist::AnnotationTypeUnknown)
         )
       end

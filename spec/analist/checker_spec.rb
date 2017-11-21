@@ -59,16 +59,21 @@ RSpec.describe Analist::Checker do
     context 'when checking an invalid method call' do
       let(:expression) { '"a".reverse(1)' }
 
-      it { expect(errors.first).to be_kind_of Analist::ArgumentError }
-      it { expect(errors.first.expected_number_of_args).to eq 0 }
-      it { expect(errors.first.actual_number_of_args).to eq 1 }
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 ArgumentError, expected 0, actual: 1'
+        )
+      end
     end
 
     context 'when checking an invalid simple coercion' do
       let(:expression) { '1 + "a"' }
 
-      it { expect(exp_annotation).to eq Analist::Annotation.new(Integer, [Integer], Integer) }
-      it { expect(act_annotation).to eq Analist::Annotation.new(Integer, [String], Integer) }
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+        )
+      end
     end
 
     context 'with Active Record' do
@@ -78,25 +83,31 @@ RSpec.describe Analist::Checker do
       context 'when checking an invalid Active Record property coercion' do
         let(:expression) { 'User.first.id + "a"' }
 
-        it { expect(errors.first).to be_kind_of Analist::TypeError }
-        it { expect(exp_annotation).to eq Analist::Annotation.new(Integer, [Integer], Integer) }
-        it { expect(act_annotation).to eq Analist::Annotation.new(Integer, [String], Integer) }
+        it do
+          expect(errors.first.to_s).to eq(
+            'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+          )
+        end
       end
 
       context 'when checking a variable assignment and multiple references on an object' do
         let(:expression) { 'var = User.first ; var.id + var.full_name' }
 
-        it { expect(errors.first).to be_kind_of Analist::TypeError }
-        it { expect(exp_annotation).to eq Analist::Annotation.new(Integer, [Integer], Integer) }
-        it { expect(act_annotation).to eq Analist::Annotation.new(Integer, [String], Integer) }
+        it do
+          expect(errors.first.to_s).to eq(
+            'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+          )
+        end
       end
 
       context 'when checking a variable assignment and multiple references on an object' do
         let(:expression) { 'var = User.first ; var.id + var.full_name' }
 
-        it { expect(errors.first).to be_kind_of Analist::TypeError }
-        it { expect(exp_annotation).to eq Analist::Annotation.new(Integer, [Integer], Integer) }
-        it { expect(act_annotation).to eq Analist::Annotation.new(Integer, [String], Integer) }
+        it do
+          expect(errors.first.to_s).to eq(
+            'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+          )
+        end
       end
     end
 
@@ -105,7 +116,9 @@ RSpec.describe Analist::Checker do
       let(:expression) { 'User.first.short_name' }
 
       it do
-        expect(errors.first).to be_kind_of Analist::DecorateWarning
+        expect(errors.first.to_s).to eq(
+          "filename.rb:1 DecorateWarning: method `short_name' would exist when User is decorated"
+        )
       end
     end
   end
