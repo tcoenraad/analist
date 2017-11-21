@@ -78,8 +78,6 @@ module Analist
     def check_send(node)
       return [Analist::DecorateWarning.new(node)] if node.annotation.hint ==
                                                      Analist::ResolveLookup::Hint::Decorate
-      return [] if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
-
       receiver, _method_name, *args = node.children
       expected_annotation = node.annotation
 
