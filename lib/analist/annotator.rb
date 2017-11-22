@@ -75,7 +75,10 @@ module Analist
       annotated_children = node.children.map { |n| annotate(n, resources) }
       variable, value = annotated_children
 
-      return unless value
+      unless value
+        return AnnotatedNode.new(node, annotated_children,
+                                 Analist::Annotation.new(nil, [], AnnotationTypeUnknown))
+      end
 
       resources[:symbol_table].store(variable, value.annotation)
 
