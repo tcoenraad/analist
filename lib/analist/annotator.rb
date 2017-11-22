@@ -17,12 +17,8 @@ module Analist
       return node unless node.respond_to?(:type)
 
       case node.type
-      when :args
-        annotate_args(node, resources)
       when :array
         annotate_array(node, resources)
-      when :begin
-        annotate_begin(node, resources)
       when :block
         annotate_block(node, resources)
       when :class
@@ -31,16 +27,8 @@ module Analist
         annotate_def(node, resources)
       when :defs
         annotate_defs(node, resources)
-      when :hash
-        annotate_hash(node, resources)
-      when :if
-        annotate_if(node, resources)
       when :module
         annotate_module(node, resources)
-      when :pair
-        annotate_pair(node, resources)
-      when :rescue
-        annotate_rescue(node, resources)
       when :send
         annotate_send(node, resources)
       when :lvasgn
@@ -50,15 +38,8 @@ module Analist
       when :int, :str, :sym, :const, :dstr
         annotate_primitive(node)
       else
-        if ENV['ANALIST_DEBUG']
-          raise NotImplementedError, "Node type `#{node.type}` cannot be annotated"
-        end
-        AnnotatedNode.new(node, node.children, UNKNOWN_ANNOTATION_TYPE)
+        annotate_children(node, resources)
       end
-    end
-
-    def annotate_args(node, resources)
-      annotate_begin(node, resources)
     end
 
     def annotate_array(node, resources)
@@ -66,14 +47,14 @@ module Analist
                         Analist::Annotation.new(nil, [], Array))
     end
 
-    def annotate_begin(node, resources)
+    def annotate_children(node, resources)
       AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
                         Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
     end
 
     def annotate_block(node, resources, name = nil)
       resources[:symbol_table].enter_scope(name)
-      block = annotate_begin(node, resources)
+      block = annotate_children(node, resources)
       resources[:symbol_table].exit_scope
       block
     end
@@ -90,17 +71,11 @@ module Analist
       annotate_block(node, resources, :"self.#{node.children[1]}")
     end
 
-    def annotate_hash(node, resources)
-      annotate_begin(node, resources)
-    end
-
-    def annotate_if(node, resources)
-      annotate_begin(node, resources)
-    end
-
     def annotate_local_variable_assignment(node, resources)
       annotated_children = node.children.map { |n| annotate(n, resources) }
       variable, value = annotated_children
+
+      return unless value
 
       resources[:symbol_table].store(variable, value.annotation)
 
@@ -119,17 +94,9 @@ module Analist
       annotate_block(node, resources, node.children.first)
     end
 
-    def annotate_pair(node, resources)
-      annotate_begin(node, resources)
-    end
-
     def annotate_primitive(node)
       AnnotatedNode.new(node, node.children,
                         Analist::Annotations.primitive_annotations[node.type].call(node))
-    end
-
-    def annotate_rescue(node, resources)
-      annotate_begin(node, resources)
     end
 
     def annotate_send(node, resources)
