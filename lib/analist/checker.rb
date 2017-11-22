@@ -7,72 +7,19 @@ module Analist
   module Checker
     module_function
 
-    def check(node) # rubocop:disable Metrics/CyclomaticComplexity
-      return [] unless node.respond_to?(:type)
+    def check(node)
+      return [] unless node.is_a?(Analist::AnnotatedNode)
 
       case node.type
-      when :begin
-        check_begin(node)
-      when :block
-        check_block(node)
-      when :class
-        check_class(node)
-      when :def
-        check_def(node)
-      when :defs
-        check_defs(node)
-      when :if
-        check_if(node)
-      when :module
-        check_module(node)
       when :send
         check_send(node)
-      when :array
-        check_array(node)
-      when :int, :str, :const
-        return
       else
-        if ENV['ANALIST_DEBUG']
-          raise NotImplementedError, "Node type `#{node.type}` cannot be checked"
-        end
-        []
+        check_children(node)
       end
-    end
-
-    def check_array(node)
-      check_children(node)
-    end
-
-    def check_begin(node)
-      check_children(node)
-    end
-
-    def check_block(node)
-      check_children(node)
     end
 
     def check_children(node)
       node.children.flat_map { |n| check(n) }.compact
-    end
-
-    def check_class(node)
-      check_children(node)
-    end
-
-    def check_def(node)
-      check_children(node)
-    end
-
-    def check_defs(node)
-      check_children(node)
-    end
-
-    def check_if(node)
-      check_children(node)
-    end
-
-    def check_module(node)
-      check_children(node)
     end
 
     def check_send(node)

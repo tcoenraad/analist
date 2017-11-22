@@ -27,21 +27,27 @@ module Analist
         annotate_block(node, resources)
       when :class
         annotate_class(node, resources)
-      when :module
-        annotate_module(node, resources)
       when :def
         annotate_def(node, resources)
       when :defs
         annotate_defs(node, resources)
+      when :hash
+        annotate_hash(node, resources)
       when :if
         annotate_if(node, resources)
+      when :module
+        annotate_module(node, resources)
+      when :pair
+        annotate_pair(node, resources)
+      when :rescue
+        annotate_rescue(node, resources)
       when :send
         annotate_send(node, resources)
       when :lvasgn
         annotate_local_variable_assignment(node, resources)
       when :lvar
         annotate_local_variable(node, resources)
-      when :int, :str, :const, :dstr
+      when :int, :str, :sym, :const, :dstr
         annotate_primitive(node)
       else
         if ENV['ANALIST_DEBUG']
@@ -84,8 +90,12 @@ module Analist
       annotate_block(node, resources, :"self.#{node.children[1]}")
     end
 
+    def annotate_hash(node, resources)
+      annotate_begin(node, resources)
+    end
+
     def annotate_if(node, resources)
-      annotate_block(node, resources)
+      annotate_begin(node, resources)
     end
 
     def annotate_local_variable_assignment(node, resources)
@@ -109,9 +119,17 @@ module Analist
       annotate_block(node, resources, node.children.first)
     end
 
+    def annotate_pair(node, resources)
+      annotate_begin(node, resources)
+    end
+
     def annotate_primitive(node)
       AnnotatedNode.new(node, node.children,
                         Analist::Annotations.primitive_annotations[node.type].call(node))
+    end
+
+    def annotate_rescue(node, resources)
+      annotate_begin(node, resources)
     end
 
     def annotate_send(node, resources)
