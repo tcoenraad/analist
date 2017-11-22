@@ -17,6 +17,8 @@ module Analist
         return unless @headers
         return unless last_statement
 
+        return if @symbol_table.scope.include?(@method)
+
         Analist::Annotator.annotate(last_statement, @resources).annotation.return_type
       end
 

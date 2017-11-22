@@ -22,4 +22,8 @@ class Klass
   def self.class_qotd_alias
     qotd
   end
+
+  def recursive_method
+    recursive_method
+  end
 end

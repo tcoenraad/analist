@@ -261,6 +261,9 @@ RSpec.describe Analist::Annotator do
       let(:class_random_number_alias_node) do
         annotated_node.children[2].children[3].children
       end
+      let(:recursive_node) do
+        annotated_node.children[2].children[6].children
+      end
 
       it { expect(instance_random_number_alias_node[0]).to eq(:instance_random_number_alias) }
       it do
@@ -272,6 +275,13 @@ RSpec.describe Analist::Annotator do
       it { expect(class_random_number_alias_node[1]).to eq(:class_random_number_alias) }
       it do
         expect(class_random_number_alias_node[3].annotation).to eq(
+          Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+        )
+      end
+
+      it { expect(recursive_node[0]).to eq(:recursive_method) }
+      it do
+        expect(recursive_node[2].annotation).to eq(
           Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
         )
       end
