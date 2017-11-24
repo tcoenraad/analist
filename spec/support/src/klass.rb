@@ -27,6 +27,10 @@ class Klass
     recursive_method
   end
 
+  def calling_recursive_method
+    recursive_method
+  end
+
   def rescued_method
   rescue Error => _e
   end

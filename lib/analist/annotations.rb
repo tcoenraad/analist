@@ -14,12 +14,10 @@ module Analist
     def ==(other)
       return false unless other.is_a?(self.class)
 
-      if args_types == [Analist::AnyArgs]
-        return [receiver_type, return_type] == [other.receiver_type, other.return_type]
+      attrs = %i[receiver_type args_types return_type]
+      attrs.all? do |attr|
+        send(attr) == other.send(attr)
       end
-
-      [receiver_type, args_types, return_type] ==
-        [other.receiver_type, other.args_types, other.return_type]
     end
 
     def to_s

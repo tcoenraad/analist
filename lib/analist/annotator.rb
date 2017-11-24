@@ -27,6 +27,8 @@ module Analist
         annotate_def(node, resources)
       when :defs
         annotate_defs(node, resources)
+      when :dstr
+        annotate_dstr(node, resources)
       when :module
         annotate_module(node, resources)
       when :send
@@ -35,7 +37,7 @@ module Analist
         annotate_local_variable_assignment(node, resources)
       when :lvar
         annotate_local_variable(node, resources)
-      when :int, :str, :sym, :const, :dstr
+      when :int, :str, :sym, :const
         annotate_primitive(node)
       else
         annotate_children(node, resources)
@@ -47,16 +49,16 @@ module Analist
                         Analist::Annotation.new(nil, [], Array))
     end
 
-    def annotate_children(node, resources)
-      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
-                        Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
-    end
-
     def annotate_block(node, resources, name = nil)
       resources[:symbol_table].enter_scope(name)
       block = annotate_children(node, resources)
       resources[:symbol_table].exit_scope
       block
+    end
+
+    def annotate_children(node, resources)
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
+                        Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
     end
 
     def annotate_class(node, resources)
@@ -69,6 +71,11 @@ module Analist
 
     def annotate_defs(node, resources)
       annotate_block(node, resources, :"self.#{node.children[1]}")
+    end
+
+    def annotate_dstr(node, resources)
+      AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
+                        Analist::Annotation.new(nil, [], String))
     end
 
     def annotate_local_variable_assignment(node, resources)

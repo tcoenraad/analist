@@ -315,9 +315,22 @@ RSpec.describe Analist::Annotator do
         end
       end
 
-      context 'when annotating rescued methods' do
+      context 'when annotating methods recursive methods' do
         subject(:recursive_node) do
           annotated_node.children[2].children[7].children
+        end
+
+        it { expect(recursive_node[0]).to eq(:calling_recursive_method) }
+        it do
+          expect(recursive_node[2].annotation).to eq(
+            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+          )
+        end
+      end
+
+      context 'when annotating rescued methods' do
+        subject(:recursive_node) do
+          annotated_node.children[2].children[8].children
         end
 
         it { expect(recursive_node[0]).to eq(:rescued_method) }

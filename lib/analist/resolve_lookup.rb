@@ -17,9 +17,13 @@ module Analist
         return unless @headers
         return unless last_statement
 
-        return if @symbol_table.scope.include?(@method)
+        lookup_chain = @resources.fetch(:lookup_chain, [])
+        return if lookup_chain.include?(@method)
 
-        Analist::Annotator.annotate(last_statement, @resources).annotation.return_type
+        @resources[:lookup_chain] = lookup_chain + [@method]
+        return_type = Analist::Annotator.annotate(last_statement, @resources).annotation.return_type
+        @resources.delete(:lookup_chain)
+        return_type
       end
 
       def klass_method?
