@@ -20,6 +20,16 @@ RSpec.describe Analist::Checker do
       it { expect(errors).to be_empty }
     end
 
+    context 'when annotating an unknown function call' do
+      let(:expression) { 'JSON.parse(1 + "bla")' }
+
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+        )
+      end
+    end
+
     context 'when checking an unknown property' do
       let(:expression) { 'a.unknown_property' }
 

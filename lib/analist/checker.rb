@@ -25,9 +25,12 @@ module Analist
     def check_send(node)
       return [Analist::DecorateWarning.new(node)] if node.annotation.hint ==
                                                      Analist::ResolveLookup::Hint::Decorate
-      return [] if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
 
       receiver, _method_name, *args = node.children
+      errors = [check(receiver), args.flat_map { |arg| check(arg) }].compact.flatten
+
+      return errors if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
+
       expected_args = node.annotation.args_types.flat_map do |a|
         a.respond_to?(:annotation) ? a.annotation.return_type[:type] : a
       end
@@ -40,19 +43,19 @@ module Analist
       )
 
       if significant_difference?(expected_annotation, actual_annotation)
-        error = if expected_annotation.args_types.count != actual_annotation.args_types.count
-                  Analist::ArgumentError.new(node, expected_number_of_args:
-                                                     expected_annotation.args_types.count,
-                                                   actual_number_of_args:
-                                                     actual_annotation.args_types.count)
-                else
-                  Analist::TypeError.new(node,
-                                         expected_annotation: expected_annotation,
-                                         actual_annotation: actual_annotation)
-                end
+        errors << if expected_annotation.args_types.count != actual_annotation.args_types.count
+                    Analist::ArgumentError.new(node, expected_number_of_args:
+                                                       expected_annotation.args_types.count,
+                                                     actual_number_of_args:
+                                                       actual_annotation.args_types.count)
+                  else
+                    Analist::TypeError.new(node,
+                                           expected_annotation: expected_annotation,
+                                           actual_annotation: actual_annotation)
+                  end
       end
 
-      [error, check(receiver), args.flat_map { |a| check(a) }.compact].compact.flatten
+      errors
     end
 
     # rubocop:disable Metrics/LineLength
