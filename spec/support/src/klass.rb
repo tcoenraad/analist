@@ -22,4 +22,20 @@ class Klass
   def self.class_qotd_alias
     qotd
   end
+
+  def recursive_method
+    recursive_method
+  end
+
+  def calling_recursive_method
+    recursive_method
+  end
+
+  def rescued_method
+  rescue Error => _e
+  end
+
+  def self.method_with_argument(arg)
+    "#{arg}"
+  end
 end

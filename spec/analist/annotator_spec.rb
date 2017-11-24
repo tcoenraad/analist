@@ -248,61 +248,97 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating methods, handle internal references w.r.t. instance methods' do
+    context 'when annotating klass.rb' do
       subject(:annotated_node) do
         described_class.annotate(node, resources)
       end
 
       let(:node) { Analist.parse_file('./spec/support/src/klass.rb') }
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
-      let(:instance_random_number_alias_node) do
-        annotated_node.children[2].children[2].children
-      end
-      let(:class_random_number_alias_node) do
-        annotated_node.children[2].children[3].children
+
+      context 'when annotating methods, handle internal references w.r.t. instance methods' do
+        let(:instance_random_number_alias_node) do
+          annotated_node.children[2].children[2].children
+        end
+        let(:class_random_number_alias_node) do
+          annotated_node.children[2].children[3].children
+        end
+
+        it { expect(instance_random_number_alias_node[0]).to eq(:instance_random_number_alias) }
+        it do
+          expect(instance_random_number_alias_node[2].annotation).to eq(
+            Analist::Annotation.new(nil, [], Integer)
+          )
+        end
+
+        it { expect(class_random_number_alias_node[1]).to eq(:class_random_number_alias) }
+        it do
+          expect(class_random_number_alias_node[3].annotation).to eq(
+            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+          )
+        end
       end
 
-      it { expect(instance_random_number_alias_node[0]).to eq(:instance_random_number_alias) }
-      it do
-        expect(instance_random_number_alias_node[2].annotation).to eq(
-          Analist::Annotation.new(nil, [], Integer)
-        )
+      context 'when annotating methods, handle internal references w.r.t. class methods' do
+        let(:instance_qotd_alias_node) do
+          annotated_node.children[2].children[4].children
+        end
+        let(:class_qotd_alias_node) do
+          annotated_node.children[2].children[5].children
+        end
+
+        it { expect(instance_qotd_alias_node[0]).to eq(:instance_qotd_alias) }
+        it do
+          expect(instance_qotd_alias_node[2].annotation).to eq(
+            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+          )
+        end
+
+        it { expect(class_qotd_alias_node[1]).to eq(:class_qotd_alias) }
+        it do
+          expect(class_qotd_alias_node[3].annotation).to eq(
+            Analist::Annotation.new(nil, [], String)
+          )
+        end
       end
 
-      it { expect(class_random_number_alias_node[1]).to eq(:class_random_number_alias) }
-      it do
-        expect(class_random_number_alias_node[3].annotation).to eq(
-          Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
-        )
-      end
-    end
+      context 'when annotating recursive methods' do
+        subject(:recursive_node) do
+          annotated_node.children[2].children[6].children
+        end
 
-    context 'when annotating methods, handle internal references w.r.t. class methods' do
-      subject(:annotated_node) do
-        described_class.annotate(node, resources)
-      end
-
-      let(:node) { Analist.parse_file('./spec/support/src/klass.rb') }
-      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
-      let(:instance_qotd_alias_node) do
-        annotated_node.children[2].children[4].children
-      end
-      let(:class_qotd_alias_node) do
-        annotated_node.children[2].children[5].children
+        it { expect(recursive_node[0]).to eq(:recursive_method) }
+        it do
+          expect(recursive_node[2].annotation).to eq(
+            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+          )
+        end
       end
 
-      it { expect(instance_qotd_alias_node[0]).to eq(:instance_qotd_alias) }
-      it do
-        expect(instance_qotd_alias_node[2].annotation).to eq(
-          Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
-        )
+      context 'when annotating methods recursive methods' do
+        subject(:recursive_node) do
+          annotated_node.children[2].children[7].children
+        end
+
+        it { expect(recursive_node[0]).to eq(:calling_recursive_method) }
+        it do
+          expect(recursive_node[2].annotation).to eq(
+            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+          )
+        end
       end
 
-      it { expect(class_qotd_alias_node[1]).to eq(:class_qotd_alias) }
-      it do
-        expect(class_qotd_alias_node[3].annotation).to eq(
-          Analist::Annotation.new(nil, [], String)
-        )
+      context 'when annotating rescued methods' do
+        subject(:recursive_node) do
+          annotated_node.children[2].children[8].children
+        end
+
+        it { expect(recursive_node[0]).to eq(:rescued_method) }
+        it do
+          expect(recursive_node[2].annotation).to eq(
+            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+          )
+        end
       end
     end
 
