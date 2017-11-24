@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    analist (0.1.14.alpha)
+    analist (0.1.15.alpha)
       activesupport (~> 5.0)
       colorize (~> 0.8.1)
       parser (= 2.4.0.0)
