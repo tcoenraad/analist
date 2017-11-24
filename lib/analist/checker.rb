@@ -28,7 +28,9 @@ module Analist
       return [] if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
 
       receiver, _method_name, *args = node.children
-      expected_args = node.annotation.args_types.flat_map { |a| a.respond_to?(:annotation) ? a.annotation.return_type[:type] : a }
+      expected_args = node.annotation.args_types.flat_map do |a|
+        a.respond_to?(:annotation) ? a.annotation.return_type[:type] : a
+      end
       expected_annotation = Analist::Annotation.new(node.annotation.receiver_type,
                                                     expected_args, node.annotation.return_type)
 
@@ -53,7 +55,8 @@ module Analist
       [error, check(receiver), args.flat_map { |a| check(a) }.compact].compact.flatten
     end
 
-    def significant_difference?(annotation, other_annotation) # rubocop:disable Metrics/PerceivedComplexity Metrics/LineLength
+    # rubocop:disable Metrics/LineLength
+    def significant_difference?(annotation, other_annotation) # rubocop:disable Metrics/CyclomaticComplexity
       attrs = %i[receiver_type args_types return_type]
       attrs.delete(:args_types) if annotation.args_types.any? { |t| t == Analist::AnnotationTypeUnknown } ||
                                    annotation.args_types == [Analist::AnyArgs] ||
@@ -68,5 +71,6 @@ module Analist
         annotation.send(attr) != other_annotation.send(attr)
       end
     end
+    # rubocop:enable Metrics/LineLength
   end
 end
