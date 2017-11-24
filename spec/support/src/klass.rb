@@ -34,4 +34,8 @@ class Klass
   def rescued_method
   rescue Error => _e
   end
+
+  def self.method_with_argument(arg)
+    "#{arg}"
+  end
 end

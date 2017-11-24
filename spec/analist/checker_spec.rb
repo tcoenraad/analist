@@ -121,5 +121,12 @@ RSpec.describe Analist::Checker do
         )
       end
     end
+
+    context 'when checking a method with a dynamic string as return value' do
+      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
+      let(:expression) { 'Klass.method_with_argument(arg)' }
+
+      it { expect(errors).to be_empty }
+    end
   end
 end
