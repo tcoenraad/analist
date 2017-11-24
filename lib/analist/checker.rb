@@ -27,7 +27,7 @@ module Analist
                                                      Analist::ResolveLookup::Hint::Decorate
 
       receiver, _method_name, *args = node.children
-      errors = [check(receiver), args.flat_map { |arg| check(arg) }].compact.flatten
+      errors = [check(receiver), args.map { |arg| check(arg) }].compact.flatten
 
       return errors if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
 
