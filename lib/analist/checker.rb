@@ -52,10 +52,10 @@ module Analist
                     Analist::TypeError.new(node,
                                            expected_annotation: expected_annotation,
                                            actual_annotation: actual_annotation)
-                 end
+                  end
       end
 
-      errors.compact.flatten
+      errors
     end
 
     # rubocop:disable Metrics/LineLength
