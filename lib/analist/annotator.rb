@@ -8,7 +8,7 @@ require 'analist/symbol_table'
 module Analist
   module Annotator
     UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::AnnotationTypeUnknown,
-                                                      [Analist::AnnotationTypeUnknown],
+                                                      [Analist::AnyArgs],
                                                       Analist::AnnotationTypeUnknown).freeze
 
     module_function
