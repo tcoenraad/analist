@@ -66,6 +66,37 @@ RSpec.describe Analist::Checker do
       it { expect(errors).to be_empty }
     end
 
+    context 'when annotating a valid regex' do
+      let(:expression) { '"example".gsub(/[aeiou]/, "")' }
+
+      it { expect(errors).to be_empty }
+    end
+
+    context 'when annotating an invalid regex' do
+      let(:expression) { '"example".gsub(1, "")' }
+
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 TypeError: expected `[Regexp, String]` args types, ' \
+          'actual `[Integer, String]`'
+        )
+      end
+    end
+
+    context 'when checking a method call that accepts both strings and symbols' do
+      context 'when string' do
+        subject(:expression) { '1.respond_to?("+")' }
+
+        it { expect(errors).to be_empty }
+      end
+
+      context 'when symbol' do
+        subject(:expression) { '1.respond_to?(:+)' }
+
+        it { expect(errors).to be_empty }
+      end
+    end
+
     context 'when checking an invalid method call' do
       let(:expression) { '"a".reverse(1)' }
 

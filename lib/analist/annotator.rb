@@ -37,7 +37,7 @@ module Analist
         annotate_local_variable_assignment(node, resources)
       when :lvar
         annotate_local_variable(node, resources)
-      when :int, :str, :sym, :const
+      when :int, :str, :sym, :const, :regexp
         annotate_primitive(node)
       else
         annotate_children(node, resources)

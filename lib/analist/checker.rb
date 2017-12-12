@@ -31,9 +31,7 @@ module Analist
 
       return errors if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
 
-      expected_args = node.annotation.args_types.flat_map do |a|
-        a.respond_to?(:annotation) ? a.annotation.return_type[:type] : a
-      end
+      expected_args = node.annotation.args_types
       expected_annotation = Analist::Annotation.new(node.annotation.receiver_type,
                                                     expected_args, node.annotation.return_type)
 
@@ -71,6 +69,9 @@ module Analist
       end
 
       attrs.any? do |attr|
+        if annotation.send(attr).is_a?(Set)
+          return !annotation.send(attr).member?(other_annotation.send(attr))
+        end
         annotation.send(attr) != other_annotation.send(attr)
       end
     end

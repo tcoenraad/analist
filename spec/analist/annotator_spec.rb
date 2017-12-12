@@ -62,10 +62,68 @@ RSpec.describe Analist::Annotator do
       it { expect(annotation).to eq Analist::Annotation.new(Integer, [Integer], Integer) }
     end
 
+    context 'when annotating a regex' do
+      let(:expression) { '/[aeiou]/' }
+
+      it { expect(annotation.return_type[:type]).to eq Regexp }
+    end
+
+    context 'when annotating a boolean method call' do
+      let(:expression) { '1.is_a?(String)' }
+
+      it { expect(annotation.return_type[:type]).to eq Analist::Boolean }
+    end
+
     context 'when annotating a simple method call' do
       subject(:expression) { '"word".reverse' }
 
       it { expect(annotation).to eq Analist::Annotation.new(String, [], String) }
+    end
+
+    context 'when annotating a method call that accepts both recognized and other recipients' do
+      context 'when with recognized recipient' do
+        subject(:expression) { '[1,2,3].join("/")' }
+
+        it do
+          expect(annotation).to eq(
+            Analist::Annotation.new({ type: Array, on: :collection }, [Analist::AnyArgs],
+                                    String)
+          )
+        end
+      end
+
+      context 'when with unknown recipient' do
+        subject(:expression) { 'Pathname.new("dir").join("/sub")' }
+
+        it do
+          expect(annotation).to eq(
+            Analist::Annotation.new({ type: :Pathname, on: :collection }, [Analist::AnyArgs],
+                                    Analist::AnnotationTypeUnknown)
+          )
+        end
+      end
+    end
+
+    context 'when annotating a method call that accepts both string and symbol arguments' do
+      context 'when symbol' do
+        subject(:expression) { '1.respond_to?(:+)' }
+
+        it do
+          expect(annotation).to eq(
+            Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]), Analist::Boolean)
+          )
+        end
+      end
+
+      context 'when string' do
+        subject(:expression) { '1.respond_to?("+")' }
+
+        it do
+          expect(annotation).to eq(
+            Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]), Analist::Boolean)
+          )
+        end
+      end
     end
 
     context 'when annotating a chained method call' do
