@@ -37,7 +37,7 @@ module Analist
         annotate_local_variable_assignment(node, resources)
       when :lvar
         annotate_local_variable(node, resources)
-      when :int, :str, :sym, :const, :regexp
+      when :int, :str, :sym, :const, :regexp, :block_pass
         annotate_primitive(node)
       else
         annotate_children(node, resources)
@@ -46,7 +46,7 @@ module Analist
 
     def annotate_array(node, resources)
       AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
-                        Analist::Annotation.new(nil, [], Array))
+                        Analist::Annotation.new(nil, [], type: Array, on: :collection))
     end
 
     def annotate_block(node, resources, name = nil)

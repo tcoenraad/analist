@@ -215,7 +215,7 @@ RSpec.describe Analist::Annotator do
       it { expect(annotation).to eq Analist::Annotation.new(Array, [Array], Array) }
       it do
         expect(annotated_node.children.first.annotation).to eq(
-          Analist::Annotation.new(nil, [], Array)
+          Analist::Annotation.new(nil, [], type: Array, on: :collection)
         )
       end
       it do

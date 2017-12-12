@@ -74,7 +74,7 @@ module Analist
         each: lambda do |receiver_return_type|
                 Annotation.new(
                   { type: receiver_return_type[:type], on: :collection },
-                  Proc,
+                  [Proc],
                   Analist::AnnotationTypeUnknown
                 )
               end,
@@ -104,8 +104,8 @@ module Analist
         map: lambda do |receiver_return_type|
                Annotation.new(
                  { type: receiver_return_type[:type], on: :collection },
-                 Proc,
-                 Analist::AnnotationTypeUnknown
+                 [],
+                 type: receiver_return_type[:type], on: :collection
                )
              end,
         join: lambda do |receiver_return_type|
@@ -340,6 +340,7 @@ module Analist
 
     def primitive_annotations
       {
+        block_pass: ->(_) { Annotation.new(nil, [], Proc) },
         const: ->(node) { Annotation.new(nil, [], type: node.children.last, on: :collection) },
         dstr: ->(_) { Annotation.new(nil, [], String) },
         int: ->(_) { Annotation.new(nil, [], Integer) },
