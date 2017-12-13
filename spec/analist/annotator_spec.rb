@@ -13,31 +13,31 @@ RSpec.describe Analist::Annotator do
     context 'when annotating an unknown function call' do
       let(:expression) { 'unknown_function(arg)' }
 
-      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::Annotation::TypeUnknown }
     end
 
     context 'when annotating an unknown property on a variable' do
       let(:expression) { 'var.property' }
 
-      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::Annotation::TypeUnknown }
     end
 
     context 'when annotating an unknown property on a known method' do
       let(:expression) { 'all.property' }
 
-      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::Annotation::TypeUnknown }
     end
 
     context 'when annotating an unknown property on a primitive type' do
       let(:expression) { '1.unknown_property' }
 
-      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::Annotation::TypeUnknown }
     end
 
     context 'when annotating an unknown property on a Active Record object' do
       let(:expression) { 'User.first.unknown_property' }
 
-      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::Annotation::TypeUnknown }
       it do
         expect(annotated_node.children.first.annotation).to eq(
           Analist::Annotation.new({ type: :User, on: :collection }, [], type: :User, on: :instance)
@@ -53,7 +53,7 @@ RSpec.describe Analist::Annotator do
     context 'when annotating a calculation on an unknown property on a Active Record object' do
       let(:expression) { 'User.first.unknown_property + 1' }
 
-      it { expect(annotation.return_type[:type]).to eq Analist::AnnotationTypeUnknown }
+      it { expect(annotation.return_type[:type]).to eq Analist::Annotation::TypeUnknown }
     end
 
     context 'when annotating a simple calculation' do
@@ -71,7 +71,7 @@ RSpec.describe Analist::Annotator do
     context 'when annotating a boolean method call' do
       let(:expression) { '1.is_a?(String)' }
 
-      it { expect(annotation.return_type[:type]).to eq Analist::Boolean }
+      it { expect(annotation.return_type[:type]).to eq Analist::Annotation::Boolean }
     end
 
     context 'when annotating a simple method call' do
@@ -85,10 +85,9 @@ RSpec.describe Analist::Annotator do
         subject(:expression) { '[1,2,3].join("/")' }
 
         it do
-          expect(annotation).to eq(
-            Analist::Annotation.new({ type: Array, on: :collection }, [Analist::AnyArgs],
-                                    String)
-          )
+          expect(annotation).to eq(Analist::Annotation.new({ type: Array, on: :collection },
+                                                           [Analist::Annotation::AnyArgs],
+                                                           String))
         end
       end
 
@@ -96,10 +95,9 @@ RSpec.describe Analist::Annotator do
         subject(:expression) { 'Pathname.new("dir").join("/sub")' }
 
         it do
-          expect(annotation).to eq(
-            Analist::Annotation.new({ type: :Pathname, on: :collection }, [Analist::AnyArgs],
-                                    Analist::AnnotationTypeUnknown)
-          )
+          expect(annotation).to eq(Analist::Annotation.new({ type: :Pathname, on: :collection },
+                                                           [Analist::Annotation::AnyArgs],
+                                                           Analist::Annotation::TypeUnknown))
         end
       end
     end
@@ -109,9 +107,8 @@ RSpec.describe Analist::Annotator do
         subject(:expression) { '1.respond_to?(:+)' }
 
         it do
-          expect(annotation).to eq(
-            Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]), Analist::Boolean)
-          )
+          expect(annotation).to eq(Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]),
+                                                           Analist::Annotation::Boolean))
         end
       end
 
@@ -119,9 +116,8 @@ RSpec.describe Analist::Annotator do
         subject(:expression) { '1.respond_to?("+")' }
 
         it do
-          expect(annotation).to eq(
-            Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]), Analist::Boolean)
-          )
+          expect(annotation).to eq(Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]),
+                                                           Analist::Annotation::Boolean))
         end
       end
     end
@@ -155,7 +151,7 @@ RSpec.describe Analist::Annotator do
 
       it do
         expect(annotation).to eq(Analist::Annotation.new({ type: :User, on: :collection }, [],
-                                                         Analist::AnnotationTypeUnknown))
+                                                         Analist::Annotation::TypeUnknown))
       end
     end
 
@@ -186,7 +182,7 @@ RSpec.describe Analist::Annotator do
 
       it do
         expect(annotation).to eq Analist::Annotation.new({ type: :User, on: :collection }, [],
-                                                         Analist::AnnotationTypeUnknown)
+                                                         Analist::Annotation::TypeUnknown)
       end
     end
 
@@ -234,7 +230,7 @@ RSpec.describe Analist::Annotator do
       let(:expression) { 'var' }
 
       it do
-        expect(annotation).to eq Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+        expect(annotation).to eq Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
       end
     end
 
@@ -332,7 +328,7 @@ RSpec.describe Analist::Annotator do
         it { expect(class_random_number_alias_node[1]).to eq(:class_random_number_alias) }
         it do
           expect(class_random_number_alias_node[3].annotation).to eq(
-            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+            Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
           )
         end
       end
@@ -348,7 +344,7 @@ RSpec.describe Analist::Annotator do
         it { expect(instance_qotd_alias_node[0]).to eq(:instance_qotd_alias) }
         it do
           expect(instance_qotd_alias_node[2].annotation).to eq(
-            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+            Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
           )
         end
 
@@ -368,7 +364,7 @@ RSpec.describe Analist::Annotator do
         it { expect(recursive_node[0]).to eq(:recursive_method) }
         it do
           expect(recursive_node[2].annotation).to eq(
-            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+            Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
           )
         end
       end
@@ -381,7 +377,7 @@ RSpec.describe Analist::Annotator do
         it { expect(recursive_node[0]).to eq(:calling_recursive_method) }
         it do
           expect(recursive_node[2].annotation).to eq(
-            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+            Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
           )
         end
       end
@@ -394,7 +390,7 @@ RSpec.describe Analist::Annotator do
         it { expect(recursive_node[0]).to eq(:rescued_method) }
         it do
           expect(recursive_node[2].annotation).to eq(
-            Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown)
+            Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
           )
         end
       end

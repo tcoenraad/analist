@@ -7,9 +7,9 @@ require 'analist/symbol_table'
 
 module Analist
   module Annotator
-    UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::AnnotationTypeUnknown,
-                                                      [Analist::AnyArgs],
-                                                      Analist::AnnotationTypeUnknown).freeze
+    UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::Annotation::TypeUnknown,
+                                                      [Analist::Annotation::AnyArgs],
+                                                      Analist::Annotation::TypeUnknown).freeze
 
     module_function
 
@@ -58,7 +58,7 @@ module Analist
 
     def annotate_children(node, resources)
       AnnotatedNode.new(node, node.children.map { |n| annotate(n, resources) },
-                        Analist::Annotation.new(nil, [], Analist::AnnotationTypeUnknown))
+                        Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown))
     end
 
     def annotate_class(node, resources)
@@ -84,7 +84,7 @@ module Analist
 
       unless value
         return AnnotatedNode.new(node, annotated_children,
-                                 Analist::Annotation.new(nil, [], AnnotationTypeUnknown))
+                                 Analist::Annotation.new(nil, [], Annotation::TypeUnknown))
       end
 
       resources[:symbol_table].store(variable, value.annotation)
@@ -124,8 +124,8 @@ module Analist
           node,
           annotated_children,
           Analist::Annotations.send_annotations[method].call(receiver_return_type) ||
-            Analist::Annotation.new(receiver_return_type[:type], [Analist::AnnotationTypeUnknown],
-                                    Analist::AnnotationTypeUnknown)
+            Analist::Annotation.new(receiver_return_type[:type], [Analist::Annotation::TypeUnknown],
+                                    Analist::Annotation::TypeUnknown)
         )
       end
 
@@ -143,7 +143,7 @@ module Analist
 
       return_type = Analist::ResolveLookup::Headers.new(annotated_children, resources).return_type
       return_type ||= Analist::ResolveLookup::Schema.new(annotated_children, resources).return_type
-      return_type ||= AnnotationTypeUnknown
+      return_type ||= Annotation::TypeUnknown
 
       hint = Analist::ResolveLookup::Hint.new(annotated_children, resources).hint
 

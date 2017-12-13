@@ -23,13 +23,13 @@ module Analist
     def to_s
       [receiver_type, args_types, return_type].to_s
     end
+
+    class TypeUnknown; end
+    class AnyArgs; end
+    class Boolean; end
   end
 
-  class AnnotationTypeUnknown; end
-  class AnyArgs; end
-  class Boolean; end
-
-  module Annotations
+  module Annotations # rubocop:disable Metrics/ModuleLength
     module_function
 
     def send_annotations # rubocop:disable Metrics/MethodLength
@@ -65,7 +65,7 @@ module Analist
         new: lambda do |receiver_return_type|
                Annotation.new(
                  { type: receiver_return_type[:type], on: :collection },
-                 [Analist::AnyArgs],
+                 [Analist::Annotation::AnyArgs],
                  type: receiver_return_type[:type], on: :instance
                )
              end,
@@ -75,17 +75,17 @@ module Analist
                 Annotation.new(
                   { type: receiver_return_type[:type], on: :collection },
                   [Proc],
-                  Analist::AnnotationTypeUnknown
+                  Analist::Annotation::TypeUnknown
                 )
               end,
         present?: lambda do |receiver_return_type|
                     Annotation.new(
                       { type: receiver_return_type[:type], on: :instance },
                       [],
-                      Analist::Boolean
+                      Analist::Annotation::Boolean
                     )
                   end,
-        private: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        private: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         to_s: lambda do |receiver_return_type|
                 Annotation.new(
                   receiver_return_type,
@@ -93,7 +93,7 @@ module Analist
                   String
                 )
               end,
-        raise: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        raise: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         where: lambda do |receiver_return_type|
                  Annotation.new(
                    { type: receiver_return_type[:type], on: :collection },
@@ -112,8 +112,8 @@ module Analist
                 return_map = { Array => String }
                 Annotation.new(
                   { type: receiver_return_type[:type], on: :collection },
-                  [Analist::AnyArgs],
-                  return_map.fetch(receiver_return_type[:type], Analist::AnnotationTypeUnknown)
+                  [Analist::Annotation::AnyArgs],
+                  return_map.fetch(receiver_return_type[:type], Analist::Annotation::TypeUnknown)
                 )
               end,
         render: ->(_) { Annotation.new(nil, [Hash || String], nil) },
@@ -128,10 +128,10 @@ module Analist
                        Annotation.new(
                          receiver_return_type,
                          Set.new([[Symbol], [String]]),
-                         Analist::Boolean
+                         Analist::Annotation::Boolean
                        )
                      end,
-        to_i: ->(_) { Annotation.new(Analist::AnnotationTypeUnknown, [], Integer) },
+        to_i: ->(_) { Annotation.new(Analist::Annotation::TypeUnknown, [], Integer) },
         desc: ->(_) { Annotation.new(nil, [String], nil) },
         first: lambda do |receiver_return_type|
                  Annotation.new(
@@ -157,15 +157,15 @@ module Analist
         is_a?: lambda do |receiver_return_type|
                  Annotation.new(
                    receiver_return_type,
-                   [Analist::AnyArgs],
-                   Analist::Boolean
+                   [Analist::Annotation::AnyArgs],
+                   Analist::Annotation::Boolean
                  )
                end,
-        puts: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        puts: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         string: lambda do |receiver_return_type|
                   Annotation.new(
                     receiver_return_type,
-                    [Analist::AnyArgs],
+                    [Analist::Annotation::AnyArgs],
                     nil
                   )
                 end,
@@ -174,19 +174,19 @@ module Analist
                 Annotation.new(
                   receiver_return_type,
                   [],
-                  Analist::Boolean
+                  Analist::Annotation::Boolean
                 )
               end,
         integer: lambda do |receiver_return_type|
                    Annotation.new(
                      receiver_return_type,
-                     [Analist::AnyArgs],
+                     [Analist::Annotation::AnyArgs],
                      nil
                    )
                  end,
         add_index: ->(_) { Annotation.new(nil, [Symbol], nil) },
         gsub: ->(_) { Annotation.new(String, [Regexp, String], String) },
-        optional: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        optional: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         find: lambda do |receiver_return_type|
                 Annotation.new(
                   { type: receiver_return_type[:type], on: :collection },
@@ -206,14 +206,14 @@ module Analist
                   Annotation.new(
                     receiver_return_type,
                     [],
-                    Analist::Boolean
+                    Analist::Annotation::Boolean
                   )
                 end,
         blank?: lambda do |receiver_return_type|
                   Annotation.new(
                     receiver_return_type,
                     [],
-                    Analist::Boolean
+                    Analist::Annotation::Boolean
                   )
                 end,
         extend: lambda do |receiver_return_type|
@@ -227,18 +227,18 @@ module Analist
                 Annotation.new(
                   receiver_return_type,
                   [],
-                  Analist::Boolean
+                  Analist::Annotation::Boolean
                 )
               end,
-        validates: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
-        before_action: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
-        redirect_to: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
-        belongs_to: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        validates: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
+        before_action: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
+        redirect_to: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
+        belongs_to: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         success?: lambda do |receiver_return_type|
                     Annotation.new(
                       receiver_return_type,
                       [],
-                      Analist::Boolean
+                      Analist::Annotation::Boolean
                     )
                   end,
         dup: lambda do |receiver_return_type|
@@ -255,7 +255,7 @@ module Analist
                     type: receiver_return_type[:type], on: :instance
                   )
                 end,
-        has_many: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        has_many: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         path: lambda do |receiver_return_type|
                 Annotation.new(
                   receiver_return_type,
@@ -267,15 +267,17 @@ module Analist
                 Annotation.new(
                   receiver_return_type,
                   Set.new([[Symbol], [String]]),
-                  Analist::AnnotationTypeUnknown
+                  Analist::Annotation::TypeUnknown
                 )
               end,
-        add_column: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
-        key?: ->(_) { Annotation.new(Hash, [Analist::AnyArgs], Analist::Boolean) },
+        add_column: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
+        key?: lambda do
+          Annotation.new(Hash, [Analist::Annotation::AnyArgs], Analist::Annotation::Boolean)
+        end,
         datetime: lambda do |receiver_return_type|
                     Annotation.new(
                       receiver_return_type,
-                      [Analist::AnyArgs],
+                      [Analist::Annotation::AnyArgs],
                       nil
                     )
                   end,
@@ -289,7 +291,7 @@ module Analist
         count: lambda do |receiver_return_type|
                  Annotation.new(
                    receiver_return_type,
-                   [Analist::AnyArgs],
+                   [Analist::Annotation::AnyArgs],
                    Integer
                  )
                end,
@@ -303,7 +305,7 @@ module Analist
         split: lambda do |receiver_return_type|
                  Annotation.new(
                    receiver_return_type,
-                   [Analist::AnyArgs],
+                   [Analist::Annotation::AnyArgs],
                    Array
                  )
                end,
@@ -311,11 +313,11 @@ module Analist
         can?: lambda do |receiver_return_type|
                 Annotation.new(
                   receiver_return_type,
-                  [Analist::AnyArgs],
-                  Analist::Boolean
+                  [Analist::Annotation::AnyArgs],
+                  Analist::Annotation::Boolean
                 )
               end,
-        create_table: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        create_table: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         to_sym: lambda do |receiver_return_type|
                   Annotation.new(
                     receiver_return_type,
@@ -326,11 +328,11 @@ module Analist
         text: lambda do |receiver_return_type|
                 Annotation.new(
                   receiver_return_type,
-                  [Analist::AnyArgs],
+                  [Analist::Annotation::AnyArgs],
                   nil
                 )
               end,
-        delegate: ->(_) { Annotation.new(nil, [Analist::AnyArgs], nil) },
+        delegate: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         require_dependency: ->(_) { Annotation.new(nil, [String], nil) },
         disable_ddl_transaction!: ->(_) { Annotation.new(nil, [], nil) },
         alias_method: ->(_) { Annotation.new(nil, [Symbol, Symbol], nil) }
