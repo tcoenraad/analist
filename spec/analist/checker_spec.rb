@@ -20,7 +20,7 @@ RSpec.describe Analist::Checker do
       it { expect(errors).to be_empty }
     end
 
-    context 'when annotating an unknown function call' do
+    context 'when checking an unknown function call' do
       let(:expression) { 'JSON.parse(1 + "bla")' }
 
       it do
@@ -66,6 +66,37 @@ RSpec.describe Analist::Checker do
       it { expect(errors).to be_empty }
     end
 
+    context 'when checking a valid regex' do
+      let(:expression) { '"example".gsub(/[aeiou]/, "")' }
+
+      it { expect(errors).to be_empty }
+    end
+
+    context 'when checking an invalid regex' do
+      let(:expression) { '"example".gsub(1, "")' }
+
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 TypeError: expected `[Regexp, String]` args types, ' \
+          'actual `[Integer, String]`'
+        )
+      end
+    end
+
+    context 'when checking a method call that accepts both strings and symbols' do
+      context 'when string' do
+        subject(:expression) { '1.respond_to?("+")' }
+
+        it { expect(errors).to be_empty }
+      end
+
+      context 'when symbol' do
+        subject(:expression) { '1.respond_to?(:+)' }
+
+        it { expect(errors).to be_empty }
+      end
+    end
+
     context 'when checking an invalid method call' do
       let(:expression) { '"a".reverse(1)' }
 
@@ -83,6 +114,48 @@ RSpec.describe Analist::Checker do
         expect(errors.first.to_s).to eq(
           'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
         )
+      end
+    end
+
+    context 'with method that requires a block' do
+      context 'with item' do
+        let(:expression) { '[1].map { |item| item }' }
+
+        it { expect(errors).to be_empty }
+      end
+
+      context 'without item' do
+        let(:expression) { '[1].map { "string" }' }
+
+        it { expect(errors).to be_empty }
+      end
+    end
+
+    context 'with method that requires a block without one' do
+      let(:expression) { '[1].map("string")' }
+
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 ArgumentError, expected 0, actual: 1'
+        )
+      end
+    end
+
+    context 'when checking a method chain with block' do
+      context 'with valid coercion' do
+        let(:expression) { '[1,2,3].map(&:to_s).join + "1"' }
+
+        it { expect(errors).to be_empty }
+      end
+
+      context 'with invalid coercion' do
+        let(:expression) { '[1,2,3].map(&:to_s).join + 1' }
+
+        it do
+          expect(errors.first.to_s).to eq(
+            'filename.rb:1 TypeError: expected `[String]` args types, actual `[Integer]`'
+          )
+        end
       end
     end
 
@@ -134,9 +207,13 @@ RSpec.describe Analist::Checker do
 
     context 'when checking a method with a dynamic string as return value' do
       let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
-      let(:expression) { 'Klass.method_with_argument(arg)' }
+      let(:expression) { 'Klass.method_with_argument(arg) + 1' }
 
-      it { expect(errors).to be_empty }
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 TypeError: expected `[String]` args types, actual `[Integer]`'
+        )
+      end
     end
   end
 end

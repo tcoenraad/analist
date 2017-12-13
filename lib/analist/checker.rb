@@ -27,13 +27,13 @@ module Analist
                                                      Analist::ResolveLookup::Hint::Decorate
 
       receiver, _method_name, *args = node.children
+      args = args.reject { |arg| arg.type == :block_pass }
+
       errors = [check(receiver), args.map { |arg| check(arg) }].compact.flatten
 
-      return errors if node.annotation.return_type[:type] == Analist::AnnotationTypeUnknown
+      return errors if node.annotation.return_type[:type] == Analist::Annotation::TypeUnknown
 
-      expected_args = node.annotation.args_types.flat_map do |a|
-        a.respond_to?(:annotation) ? a.annotation.return_type[:type] : a
-      end
+      expected_args = node.annotation.args_types
       expected_annotation = Analist::Annotation.new(node.annotation.receiver_type,
                                                     expected_args, node.annotation.return_type)
 
@@ -58,22 +58,24 @@ module Analist
       errors
     end
 
-    # rubocop:disable Metrics/LineLength
-    def significant_difference?(annotation, other_annotation) # rubocop:disable Metrics/CyclomaticComplexity
+    def significant_difference?(annotation, other_annotation)
       attrs = %i[receiver_type args_types return_type]
-      attrs.delete(:args_types) if annotation.args_types.any? { |t| t == Analist::AnnotationTypeUnknown } ||
-                                   annotation.args_types == [Analist::AnyArgs] ||
-                                   other_annotation.args_types.any? { |t| t == Analist::AnnotationTypeUnknown } ||
-                                   other_annotation.args_types == [Analist::AnyArgs]
+      attrs.delete(:args_types) if [annotation, other_annotation].any? do |a|
+        a.args_types.any? { |t| t == Analist::Annotation::TypeUnknown } ||
+        a.args_types == [Analist::Annotation::AnyArgs]
+      end
       %i[receiver_type return_type].each do |field|
-        attrs.delete(field) if annotation.send(field)[:type] == Analist::AnnotationTypeUnknown ||
-                               other_annotation.send(field)[:type] == Analist::AnnotationTypeUnknown
+        attrs.delete(field) if annotation.send(field)[:type] == Analist::Annotation::TypeUnknown ||
+                               other_annotation.send(field)[:type] ==
+                               Analist::Annotation::TypeUnknown
       end
 
       attrs.any? do |attr|
+        if annotation.send(attr).is_a?(Set)
+          return !annotation.send(attr).member?(other_annotation.send(attr))
+        end
         annotation.send(attr) != other_annotation.send(attr)
       end
     end
-    # rubocop:enable Metrics/LineLength
   end
 end
