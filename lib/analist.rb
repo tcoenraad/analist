@@ -20,7 +20,7 @@ module Analist
   module_function
 
   def analyze(files, schema_filename: nil, global_types: {})
-    schema = Analist::SQL::Schema.read_from_file(schema_filename) if schema_filename
+    schema = Analist::SQL::Schema.read_from_file(schema_filename) if File.exist?(schema_filename)
 
     nodes = files.map { |filename| Analist::Explorer.explore(filename) }
     headers = Analist::Headerizer.headerize(nodes)

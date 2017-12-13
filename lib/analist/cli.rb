@@ -31,7 +31,8 @@ module Analist
 
     def default_options
       {
-        config: './.analist.yml'
+        config: './.analist.yml',
+        schema: './db/structure.sql'
       }
     end
 

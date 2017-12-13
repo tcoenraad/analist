@@ -216,13 +216,6 @@ module Analist
                     Analist::Annotation::Boolean
                   )
                 end,
-        extend: lambda do |receiver_return_type|
-                  Annotation.new(
-                    receiver_return_type,
-                    [{ type: node.children.last, on: :collection }],
-                    nil
-                  )
-                end,
         any?: lambda do |receiver_return_type|
                 Annotation.new(
                   receiver_return_type,
