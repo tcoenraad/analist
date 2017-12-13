@@ -271,7 +271,7 @@ module Analist
                 )
               end,
         add_column: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
-        key?: lambda do
+        key?: lambda do |_|
           Annotation.new(Hash, [Analist::Annotation::AnyArgs], Analist::Annotation::Boolean)
         end,
         datetime: lambda do |receiver_return_type|
