@@ -41,7 +41,7 @@ module Analist
     end
 
     def current_scope_klass?
-      scope.last.to_s.start_with?('self.')
+      scope.compact.last.to_s.start_with?('self.')
     end
   end
 end

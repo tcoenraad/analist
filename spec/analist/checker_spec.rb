@@ -77,8 +77,8 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 TypeError: expected `[Regexp, String]` args types, ' \
-          'actual `[Integer, String]`'
+          'filename.rb:1 TypeError: expected `#<Set: {[Regexp, String], [Regexp], [String, ' \
+          'String]}>` args types, actual `[Integer, String]`'
         )
       end
     end
@@ -102,7 +102,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 ArgumentError, expected 0, actual: 1'
+          'filename.rb:1 ArgumentError, `reverse` expected 0, actual: 1'
         )
       end
     end
@@ -136,7 +136,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 ArgumentError, expected 0, actual: 1'
+          'filename.rb:1 ArgumentError, `map` expected 0, actual: 1'
         )
       end
     end
@@ -214,6 +214,28 @@ RSpec.describe Analist::Checker do
           'filename.rb:1 TypeError: expected `[String]` args types, actual `[Integer]`'
         )
       end
+    end
+
+    context 'when checking a method with a dynamic string as return value' do
+      let(:expression) do
+        <<-HEREDOC
+        class Klass
+          def method_with_call
+            local_assignment
+
+            variable + 'a'
+          end
+
+          def local_assignment
+            variable = 1
+          end
+        end
+        HEREDOC
+      end
+
+      let(:headers) { Analist::Headerizer.headerize([CommonHelpers.parse(expression)]) }
+
+      it { expect(errors).to be_empty }
     end
   end
 end

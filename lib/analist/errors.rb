@@ -16,14 +16,16 @@ module Analist
         expected = expected_annotation.send(type)
         actual = actual_annotation.send(type)
         humanized_type = type.to_s.humanize(capitalize: false)
-        diff << "expected `#{expected}` #{humanized_type}, actual `#{actual}`" if expected != actual
+        if expected != actual
+          diff << "expected `#{expected.inspect}` #{humanized_type}, actual `#{actual.inspect}`"
+        end
       end
       diff
     end
 
     def to_s
       "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} TypeError: "\
-        "#{annotation_difference.join(',')}"
+        "#{annotation_difference.join(', ')}"
     end
   end
 
@@ -37,8 +39,9 @@ module Analist
     end
 
     def to_s
+      _receiver, method, = @node.children
       "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} ArgumentError, "\
-        "expected #{@expected_number_of_args}, actual: #{@actual_number_of_args}"
+        "`#{method}` expected #{@expected_number_of_args}, actual: #{@actual_number_of_args}"
     end
   end
 end

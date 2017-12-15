@@ -43,7 +43,8 @@ module Analist
       )
 
       if significant_difference?(expected_annotation, actual_annotation)
-        errors << if expected_annotation.args_types.count != actual_annotation.args_types.count
+        possible_error_count = expected_annotation.args_types.is_a?(Set) ? expected_annotation.args_types.map(&:count) : [expected_annotation.args_types.count]
+        errors << if !possible_error_count.include?(actual_annotation.args_types.count)
                     Analist::ArgumentError.new(node, expected_number_of_args:
                                                        expected_annotation.args_types.count,
                                                      actual_number_of_args:

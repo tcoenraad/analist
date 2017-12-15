@@ -89,7 +89,7 @@ module Analist
         to_s: lambda do |receiver_return_type|
                 Annotation.new(
                   receiver_return_type,
-                  [],
+                  Set.new([[], [Integer]]),
                   String
                 )
               end,
@@ -97,7 +97,7 @@ module Analist
         where: lambda do |receiver_return_type|
                  Annotation.new(
                    { type: receiver_return_type[:type], on: :collection },
-                   [Hash],
+                   Set.new([[], [Hash]]),
                    type: receiver_return_type[:type], on: :collection
                  )
                end,
@@ -185,7 +185,9 @@ module Analist
                    )
                  end,
         add_index: ->(_) { Annotation.new(nil, [Symbol], nil) },
-        gsub: ->(_) { Annotation.new(String, [Regexp, String], String) },
+        gsub: lambda do |_|
+          Annotation.new(String, Set.new([[Regexp, String], [Regexp], [String, String]]), String)
+        end,
         optional: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         find: lambda do |receiver_return_type|
                 Annotation.new(
@@ -299,7 +301,7 @@ module Analist
                  Annotation.new(
                    receiver_return_type,
                    [Analist::Annotation::AnyArgs],
-                   Array
+                   type: Array, on: :collection
                  )
                end,
         attr_accessor: ->(_) { Annotation.new(nil, Set.new([[Symbol], [String]]), nil) },

@@ -21,7 +21,9 @@ module Analist
         return if lookup_chain.include?(@method)
 
         @resources[:lookup_chain] = lookup_chain + [@method]
+        @resources[:symbol_table].enter_scope
         return_type = Analist::Annotator.annotate(last_statement, @resources).annotation.return_type
+        @resources[:symbol_table].exit_scope
         @resources.delete(:lookup_chain)
         return_type
       end
@@ -36,10 +38,12 @@ module Analist
         @method
       end
 
+      # rubocop:disable Style/SafeNavigation
       def klass_name
         return @receiver.annotation.return_type[:type].to_s if @receiver
-        @symbol_table.scope[0..-2].join('::')
+        @symbol_table.scope.select { |s| s && s[0] == s[0].upcase }.join('::')
       end
+      # rubocop:enable Style/SafeNavigation
 
       def last_statement
         @headers.retrieve_method(method_name, klass_name)&.children&.last
