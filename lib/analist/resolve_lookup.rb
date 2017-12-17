@@ -13,9 +13,10 @@ module Analist
         @receiver, @method = annotated_children
       end
 
-      def return_type
+      def return_type # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
         return unless @headers
-        return unless last_statement
+        return unless (last_statement =
+                         @headers.retrieve_method(method_name, klass_name)&.children&.last)
 
         lookup_chain = @resources.fetch(:lookup_chain, [])
         return if lookup_chain.include?(@method)
@@ -38,15 +39,9 @@ module Analist
         @method
       end
 
-      # rubocop:disable Style/SafeNavigation
       def klass_name
         return @receiver.annotation.return_type[:type].to_s if @receiver
-        @symbol_table.scope.select { |s| s && s[0] == s[0].upcase }.join('::')
-      end
-      # rubocop:enable Style/SafeNavigation
-
-      def last_statement
-        @headers.retrieve_method(method_name, klass_name)&.children&.last
+        @symbol_table.scope[0..-2].join('::')
       end
     end
 
