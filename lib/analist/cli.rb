@@ -70,7 +70,7 @@ module Analist
     def print_collected_errors
       collected_errors.each do |errors|
         errors.each do |error|
-          puts error
+          STDERR.puts error
         end
       end
     end
