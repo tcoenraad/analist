@@ -44,6 +44,6 @@ module Analist
   end
 
   def parse_file(file)
-    parse(IO.read(file))
+    parse(IO.read(file, encoding: 'UTF-8'))
   end
 end

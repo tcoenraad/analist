@@ -7,7 +7,7 @@ module Analist
     end
 
     def self.extract_file(file)
-      extract(IO.read(file))
+      extract(IO.read(file, encoding: 'UTF-8'))
     end
 
     def self.erb_to_ruby_regex
