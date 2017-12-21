@@ -22,7 +22,7 @@ module Analist
       node.children.flat_map { |n| check(n) }.compact
     end
 
-    def check_send(node)
+    def check_send(node) # rubocop:disable Metrics/PerceivedComplexity
       return [Analist::DecorateWarning.new(node)] if node.annotation.hint ==
                                                      Analist::ResolveLookup::Hint::Decorate
 
@@ -43,7 +43,11 @@ module Analist
       )
 
       if significant_difference?(expected_annotation, actual_annotation)
-        possible_error_count = expected_annotation.args_types.is_a?(Set) ? expected_annotation.args_types.map(&:count) : [expected_annotation.args_types.count]
+        possible_error_count = if expected_annotation.args_types.is_a?(Set)
+                                 expected_annotation.args_types.map(&:count)
+                               else
+                                 [expected_annotation.args_types.count]
+                               end
         errors << if !possible_error_count.include?(actual_annotation.args_types.count)
                     Analist::ArgumentError.new(node, expected_number_of_args:
                                                        expected_annotation.args_types.count,
