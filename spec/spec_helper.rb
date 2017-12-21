@@ -9,6 +9,8 @@ require 'pry'
 require 'parser/ruby24'
 require 'pg_query'
 
+Dir[File.dirname(__FILE__) + '/support/matchers/*.rb'].each { |f| require f }
+
 class CommonHelpers
   def self.parse(string)
     Analist::Explorer.expand(Parser::Ruby24.parse(string), 'filename.rb')

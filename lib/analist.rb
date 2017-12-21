@@ -40,10 +40,30 @@ module Analist
   end
 
   def parse(string)
-    Parser::Ruby24.parse(string)
+    buffer = Parser::Source::Buffer.new('(string)')
+    buffer.source = string
+
+    node = parser.parse(buffer)
+
+    @diagnostics.each do |diagnostic|
+      STDERR.puts "(string):#{diagnostic.location.line - 1} SyntaxError: #{diagnostic.message}"
+    end
+    exit 1 if @diagnostics.any?
+
+    node
   end
 
   def parse_file(file)
     parse(IO.read(file, encoding: 'UTF-8'))
+  end
+
+  def parser
+    @diagnostics = []
+    Parser::Ruby24.new.tap do |parser|
+      parser.diagnostics.ignore_warnings = false
+      parser.diagnostics.consumer = lambda do |diagnostic|
+        @diagnostics << diagnostic
+      end
+    end
   end
 end
