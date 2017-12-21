@@ -161,7 +161,10 @@ module Analist
                    Analist::Annotation::Boolean
                  )
                end,
-        puts: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
+        puts: lambda do |receiver_return_type|
+          receiver_return_node = { STDERR: { type: :STDERR, on: :collection} }.fetch(:receiver_return_type[:type], nil)
+          Annotation.new(receiver_return_node, [Analist::Annotation::AnyArgs], nil)
+        end,
         string: lambda do |receiver_return_type|
                   Annotation.new(
                     receiver_return_type,
