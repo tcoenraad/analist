@@ -302,20 +302,35 @@ RSpec.describe Analist::Annotator do
       end
     end
 
-    context 'when annotating klass.rb' do
-      subject(:annotated_node) do
-        described_class.annotate(node, resources)
+    context 'when annotating rescued methods' do
+      subject(:expression) do
+        <<~HEREDOC
+          def rescued_method
+          rescue Error => _e
+          end
+        HEREDOC
       end
 
-      let(:node) { Analist.parse_file('./spec/support/src/klass.rb') }
-      let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/klass.rb') }
+      it { expect(annotated_node.children[0]).to eq(:rescued_method) }
+      it do
+        expect(annotated_node.children[2].annotation).to eq(
+          Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
+        )
+      end
+    end
 
-      context 'when annotating methods, handle internal references w.r.t. instance methods' do
+    context 'when annotating internal references' do
+      subject(:annotated_node) { described_class.annotate(node, resources) }
+
+      context 'when handling instance methods' do
+        let(:node) { Analist.parse_file('./spec/support/src/aliases.rb') }
+        let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/aliases.rb') }
+
         let(:instance_random_number_alias_node) do
-          annotated_node.children[2].children[2].children
+          annotated_node.children[2].children[1].children
         end
         let(:class_random_number_alias_node) do
-          annotated_node.children[2].children[3].children
+          annotated_node.children[2].children[2].children
         end
 
         it { expect(instance_random_number_alias_node[0]).to eq(:instance_random_number_alias) }
@@ -333,7 +348,10 @@ RSpec.describe Analist::Annotator do
         end
       end
 
-      context 'when annotating methods, handle internal references w.r.t. class methods' do
+      context 'when handling class methods' do
+        let(:node) { Analist.parse_file('./spec/support/src/aliases.rb') }
+        let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/aliases.rb') }
+
         let(:instance_qotd_alias_node) do
           annotated_node.children[2].children[4].children
         end
@@ -356,10 +374,12 @@ RSpec.describe Analist::Annotator do
         end
       end
 
-      context 'when annotating recursive methods' do
-        subject(:recursive_node) do
-          annotated_node.children[2].children[6].children
-        end
+      context 'when handling recursive methods' do
+        let(:recursive_node) { annotated_node.children[2].children[0].children }
+        let(:calling_recursive_node) { annotated_node.children[2].children[1].children }
+
+        let(:node) { Analist.parse_file('./spec/support/src/recursive.rb') }
+        let(:headers) { Analist::HeaderTable.read_from_file('./spec/support/src/recursive.rb') }
 
         it { expect(recursive_node[0]).to eq(:recursive_method) }
         it do
@@ -367,29 +387,10 @@ RSpec.describe Analist::Annotator do
             Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
           )
         end
-      end
 
-      context 'when annotating methods recursive methods' do
-        subject(:recursive_node) do
-          annotated_node.children[2].children[7].children
-        end
-
-        it { expect(recursive_node[0]).to eq(:calling_recursive_method) }
+        it { expect(calling_recursive_node[0]).to eq(:calling_recursive_method) }
         it do
-          expect(recursive_node[2].annotation).to eq(
-            Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
-          )
-        end
-      end
-
-      context 'when annotating rescued methods' do
-        subject(:recursive_node) do
-          annotated_node.children[2].children[8].children
-        end
-
-        it { expect(recursive_node[0]).to eq(:rescued_method) }
-        it do
-          expect(recursive_node[2].annotation).to eq(
+          expect(calling_recursive_node[2].annotation).to eq(
             Analist::Annotation.new(nil, [], Analist::Annotation::TypeUnknown)
           )
         end

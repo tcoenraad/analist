@@ -15,7 +15,7 @@ module Analist
     end
 
     def store_mutation(identifier, type)
-      mutations_table[identifier] = type
+      mutations_table[identifier] = mutation_type_map.fetch(type, Annotation::TypeUnknown)
     end
 
     def store_method(method, scope, node)
@@ -38,8 +38,8 @@ module Analist
       retrieve_method(method, superklass)
     end
 
-    def retrieve_mutation(klass_name)
-      mutations_table[klass_name]
+    def retrieve_mutation(identifier)
+      mutations_table[identifier]
     end
 
     private
@@ -54,6 +54,16 @@ module Analist
 
     def mutations_table
       @mutations_table ||= {}
+    end
+
+    def mutation_type_map
+      {
+        array: Array,
+        boolean: Analist::Annotation::Boolean,
+        integer: Integer,
+        hash: Hash,
+        string: String
+      }
     end
   end
 end
