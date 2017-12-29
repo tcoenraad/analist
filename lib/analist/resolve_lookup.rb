@@ -15,10 +15,11 @@ module Analist
 
       def return_type # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
         return unless @headers
+        return mutation_type if @resources[:symbol_table].scope.last == :execute
         return unless (last_statement =
                          @headers.retrieve_method(method_name, klass_name)&.children&.last)
-
         lookup_chain = @resources.fetch(:lookup_chain, [])
+
         return if lookup_chain.include?(@method)
 
         @resources[:lookup_chain] = lookup_chain + [@method]
@@ -42,6 +43,11 @@ module Analist
       def klass_name
         return @receiver.annotation.return_type[:type].to_s if @receiver
         @symbol_table.scope[0..-2].join('::')
+      end
+
+      def mutation_type
+        identifier = "#{@resources[:symbol_table].scope[0...-1].join('::')}.#{@method}"
+        @resources[:headers].retrieve_mutation(identifier)
       end
     end
 

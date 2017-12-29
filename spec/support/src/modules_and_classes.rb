@@ -14,3 +14,16 @@ end
 
 class Blaat::SuperBlaatUser < User
 end
+
+class CreateUser < Mutations::Command
+  required do
+    integer :id
+    string :name
+  end
+end
+
+class UpdateUser < Mutations::Command
+  required do
+    integer :id
+  end
+end

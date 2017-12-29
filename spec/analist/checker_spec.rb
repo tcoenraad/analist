@@ -216,7 +216,7 @@ RSpec.describe Analist::Checker do
       end
     end
 
-    context 'when checking a method with a dynamic string as return value' do
+    context 'when checking a method that calls a method shadowing a variable' do
       let(:expression) do
         <<-HEREDOC
         class Klass
@@ -236,6 +236,31 @@ RSpec.describe Analist::Checker do
       let(:headers) { Analist::Headerizer.headerize([CommonHelpers.parse(expression)]) }
 
       it { expect(errors).to be_empty }
+    end
+
+    context 'when type checking mutations' do
+      let(:expression) do
+        <<-HEREDOC
+        class UpdateUser < Mutations::Command
+          required do
+            integer :id
+          end
+
+          def execute
+            id + 'a'
+          end
+        end
+
+        HEREDOC
+      end
+
+      let(:headers) { Analist::Headerizer.headerize([CommonHelpers.parse(expression)]) }
+
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:7 TypeError: expected `[Integer]` args types, actual `[String]`'
+        )
+      end
     end
   end
 end
