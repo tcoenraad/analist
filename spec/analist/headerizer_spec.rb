@@ -25,9 +25,9 @@ RSpec.describe Analist::Headerizer do
     end
 
     context 'with regard to the User mutation classes' do
-      it { expect(header_table.retrieve_mutation('CreateUser.id')).to eq :integer }
-      it { expect(header_table.retrieve_mutation('CreateUser.name')).to eq :string }
-      it { expect(header_table.retrieve_mutation('UpdateUser.id')).to eq :integer }
+      it { expect(header_table.retrieve_mutation('CreateUser.id')).to eq Integer }
+      it { expect(header_table.retrieve_mutation('CreateUser.name')).to eq String }
+      it { expect(header_table.retrieve_mutation('UpdateUser.id')).to eq Integer }
     end
   end
 end
