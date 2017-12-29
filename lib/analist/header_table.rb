@@ -14,6 +14,10 @@ module Analist
       classes_table[full_klass_name] = OpenStruct.new(scope: scope, superklass: superklass)
     end
 
+    def store_mutation(identifier, type)
+      mutations_table[identifier] = type
+    end
+
     def store_method(method, scope, node)
       constant_name = scope.join('::')
       if methods_table.key?(method)
@@ -34,6 +38,10 @@ module Analist
       retrieve_method(method, superklass)
     end
 
+    def retrieve_mutation(klass_name)
+      mutations_table[klass_name]
+    end
+
     private
 
     def classes_table
@@ -42,6 +50,10 @@ module Analist
 
     def methods_table
       @methods_table ||= {}
+    end
+
+    def mutations_table
+      @mutations_table ||= {}
     end
   end
 end

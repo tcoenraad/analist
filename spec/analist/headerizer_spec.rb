@@ -6,22 +6,28 @@ RSpec.describe Analist::Headerizer do
   describe '#headerizer' do
     subject(:header_table) { described_class.headerize([source]) }
 
-    context 'when looking for the User class' do
+    context 'with regard to the User class' do
       it { expect(header_table.retrieve_class('User').superklass).to eq '' }
       it { expect(header_table.retrieve_class('User').scope).to be_empty }
     end
 
-    context 'when looking for the BlaatUser class' do
+    context 'with regard to the BlaatUser class' do
       it { expect(header_table.retrieve_class('Blaat::BlaatUser').superklass).to eq 'User' }
       it { expect(header_table.retrieve_class('Blaat::BlaatUser').scope).to eq [:Blaat] }
       it { expect(header_table.retrieve_method(:method, 'Blaat::BlaatUser')).not_to be_nil }
     end
 
-    context 'when looking for the SuperBlaatUser class' do
+    context 'with regard to the SuperBlaatUser class' do
       it { expect(header_table.retrieve_class('Blaat::SuperBlaatUser').superklass).to eq 'User' }
       it { expect(header_table.retrieve_class('Blaat::SuperBlaatUser').scope).to eq [:Blaat] }
       it { expect(header_table.retrieve_method(:method, 'Blaat::SuperBlaatUser')).to be_nil }
       it { expect(header_table.retrieve_method(:full_name, 'Blaat::SuperBlaatUser')).not_to be_nil }
+    end
+
+    context 'with regard to the User mutation classes' do
+      it { expect(header_table.retrieve_mutation('CreateUser.id')).to eq :integer }
+      it { expect(header_table.retrieve_mutation('CreateUser.name')).to eq :string }
+      it { expect(header_table.retrieve_mutation('UpdateUser.id')).to eq :integer }
     end
   end
 end

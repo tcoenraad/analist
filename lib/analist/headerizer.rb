@@ -28,6 +28,8 @@ module Analist
         headerize_defs(node, header_table, scope)
       when :module
         headerize_module(node, header_table, scope)
+      when :block
+        headerize_block(node, header_table, scope)
       end
     end
 
@@ -59,11 +61,27 @@ module Analist
       find_headers(body, header_table, scope + to_namespace(namespace))
     end
 
+    def headerize_block(node, header_table, scope) # rubocop:disable Metrics/AbcSize
+      klass = scope.join('::')
+      return unless %i[required optional].include?(node.children.first.children.last) &&
+                    header_table.retrieve_class(klass).superklass == 'Mutations::Command'
+
+      mutations = node.children.last.type == :send ? [node.children.last] : node.children.last.children # rubocop:disable Metrics/LineLength
+      mutations.each do |mutation|
+        store_param_type(mutation, header_table, scope)
+      end
+    end
+
     def to_namespace(node)
       return [] unless node.respond_to?(:children)
 
       _receiver, name = node.children
       [to_namespace(node.children.first), name].flatten.compact
+    end
+
+    def store_param_type(param, header_table, scope)
+      _, type, identifier = param.children
+      header_table.store_mutation("#{scope.join('::')}.#{identifier.children.last}", type)
     end
   end
 end
