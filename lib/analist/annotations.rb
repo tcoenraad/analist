@@ -27,6 +27,10 @@ module Analist
     class TypeUnknown; end
     class AnyArgs; end
     class Boolean; end
+
+    UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::Annotation::TypeUnknown,
+                                                      [Analist::Annotation::AnyArgs],
+                                                      Analist::Annotation::TypeUnknown).freeze
   end
 
   module Annotations # rubocop:disable Metrics/ModuleLength
@@ -70,7 +74,10 @@ module Analist
                )
              end,
         include: ->(_) { Annotation.new(nil, [String], nil) },
-        require: ->(_) { Annotation.new(nil, [String], nil) },
+        require: lambda do |receiver_return_type|
+          { nil: Annotation.new(nil, [String], nil) }.fetch(receiver_return_type,
+            Annotation::UNKNOWN_ANNOTATION_TYPE)
+        end,
         each: lambda do |receiver_return_type|
                 Annotation.new(
                   { type: receiver_return_type[:type], on: :collection },
@@ -97,7 +104,12 @@ module Analist
         where: lambda do |receiver_return_type|
                  Annotation.new(
                    { type: receiver_return_type[:type], on: :collection },
-                   Set.new([[], [Hash]]),
+                   Set.new([[],
+                            [Array],
+                            [String, Hash],
+                            [String],
+                            [String, String],
+                            [String, String, String]]), # TODO: support countless arguments
                    type: receiver_return_type[:type], on: :collection
                  )
                end,
@@ -116,7 +128,7 @@ module Analist
                   return_map.fetch(receiver_return_type[:type], Analist::Annotation::TypeUnknown)
                 )
               end,
-        render: ->(_) { Annotation.new(nil, [Hash || String], nil) },
+        render: ->(_) { Annotation.new(nil, Set.new([[Hash], [String]]), nil) },
         class: lambda do |receiver_return_type|
                  Annotation.new(
                    receiver_return_type,
@@ -148,12 +160,11 @@ module Analist
                  )
                end,
         freeze: lambda do |receiver_return_type|
-                  Annotation.new(
-                    receiver_return_type,
-                    [],
-                    receiver_return_type
-                  )
-                end,
+          {
+            collection: Annotation::UNKNOWN_ANNOTATION_TYPE
+          }.fetch(receiver_return_type[:on],
+                  Annotation.new(receiver_return_type, [], receiver_return_type))
+        end,
         is_a?: lambda do |receiver_return_type|
                  Annotation.new(
                    receiver_return_type,

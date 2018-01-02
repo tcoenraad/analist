@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe Analist::Annotator do
-  describe '#annotate' do
-    subject(:annotation) { annotated_node.annotation }
+  subject(:annotation) { annotated_node.annotation }
+  let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
+  let(:schema) { Analist::SQL::Schema.new  }
+  let(:headers) { Analist::HeaderTable.new }
+  let(:symbol_table) { Analist::SymbolTable.new }
+  let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
 
-    let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
-    let(:schema) { Analist::SQL::Schema.new  }
-    let(:headers) { Analist::HeaderTable.new }
-    let(:symbol_table) { Analist::SymbolTable.new }
-    let(:annotated_node) { described_class.annotate(CommonHelpers.parse(expression), resources) }
-
+  describe '#annotate a concept' do
     context 'when annotating an unknown function call' do
       let(:expression) { 'unknown_function(arg)' }
 
@@ -98,26 +97,6 @@ RSpec.describe Analist::Annotator do
           expect(annotation).to eq(Analist::Annotation.new({ type: :Pathname, on: :collection },
                                                            [Analist::Annotation::AnyArgs],
                                                            Analist::Annotation::TypeUnknown))
-        end
-      end
-    end
-
-    context 'when annotating a method call that accepts both string and symbol arguments' do
-      context 'when symbol' do
-        subject(:expression) { '1.respond_to?(:+)' }
-
-        it do
-          expect(annotation).to eq(Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]),
-                                                           Analist::Annotation::Boolean))
-        end
-      end
-
-      context 'when string' do
-        subject(:expression) { '1.respond_to?("+")' }
-
-        it do
-          expect(annotation).to eq(Analist::Annotation.new(Integer, Set.new([[String], [Symbol]]),
-                                                           Analist::Annotation::Boolean))
         end
       end
     end
@@ -418,7 +397,7 @@ RSpec.describe Analist::Annotator do
       let(:expression) { 'User.first.short_name' }
 
       it do
-        expect(annotated_node.annotation.hint).to eq Analist::ResolveLookup::Hint::Decorate
+        expect(annotation.hint).to eq Analist::ResolveLookup::Hint::Decorate
       end
     end
 
@@ -427,7 +406,7 @@ RSpec.describe Analist::Annotator do
       let(:expression) { 'User.first.decorate.short_name' }
 
       it do
-        expect(annotated_node.annotation).to eq Analist::Annotation.new(
+        expect(annotation).to eq Analist::Annotation.new(
           { type: :UserDecorator, on: :instance }, [], String
         )
       end
@@ -450,6 +429,21 @@ RSpec.describe Analist::Annotator do
         expect(annotated_edit_node[3].annotation).to eq Analist::Annotation.new(
           { type: :User, on: :instance }, [], Integer
         )
+      end
+    end
+  end
+
+  describe '#annotate on a specific method' do
+    context '#freeze' do
+      describe 'when from standard libary' do
+        let(:expression) { '1.freeze' }
+
+        it { expect(annotation).to eq Analist::Annotation.new(Integer, [], Integer) }
+      end
+      describe 'when from external resource' do
+        let(:expression) { 'Timecop.freeze' }
+
+        it { expect(annotation).to eq Analist::Annotation::UNKNOWN_ANNOTATION_TYPE }
       end
     end
   end

@@ -50,7 +50,7 @@ module Analist
                                end
         errors << if !possible_error_count.include?(actual_annotation.args_types.count)
                     Analist::ArgumentError.new(node, expected_number_of_args:
-                                                       expected_annotation.args_types.count,
+                                                       possible_error_count.uniq,
                                                      actual_number_of_args:
                                                        actual_annotation.args_types.count)
                   else
