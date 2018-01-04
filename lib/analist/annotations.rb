@@ -6,9 +6,20 @@ module Analist
 
     def initialize(receiver_type, args_types, return_type, hint: nil)
       @receiver_type = receiver_type.is_a?(Hash) ? receiver_type : { type: receiver_type }
-      @args_types = args_types
+      @args_types = self.class.initialize_args_types(args_types)
       @return_type = return_type.is_a?(Hash) ? return_type : { type: return_type }
       @hint = hint
+    end
+
+    def self.initialize_args_types(args_types)
+      if args_types.is_a?(Set)
+        return Set.new(args_types.map do |set|
+          set.map do |arg_type|
+            arg_type.is_a?(Hash) ? arg_type : { type: arg_type }
+          end
+        end)
+      end
+      args_types.map { |arg_type| arg_type.is_a?(Hash) ? arg_type : { type: arg_type } }
     end
 
     def ==(other)
@@ -26,6 +37,7 @@ module Analist
 
     class TypeUnknown; end
     class AnyArgs; end
+    class AnyClass; end
     class Boolean; end
 
     UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::Annotation::TypeUnknown,
@@ -73,10 +85,14 @@ module Analist
                  type: receiver_return_type[:type], on: :instance
                )
              end,
-        include: ->(_) { Annotation.new(nil, [String], nil) },
+        include: lambda do |receiver_return_type|
+          {
+            nil => Annotation.new(nil, [Annotation::AnyClass], nil)
+          }.fetch(receiver_return_type[:type], Annotation::UNKNOWN_ANNOTATION_TYPE)
+        end,
         require: lambda do |receiver_return_type|
           { nil: Annotation.new(nil, [String], nil) }.fetch(receiver_return_type,
-            Annotation::UNKNOWN_ANNOTATION_TYPE)
+                                                            Annotation::UNKNOWN_ANNOTATION_TYPE)
         end,
         each: lambda do |receiver_return_type|
                 Annotation.new(
@@ -185,7 +201,10 @@ module Analist
                     nil
                   )
                 end,
-        attr_reader: ->(_) { Annotation.new(nil, Set.new([[Symbol], [String]]), nil) },
+        attr_reader: lambda do |_| # TODO: support countless arguments
+          Annotation.new(nil, Set.new([[Symbol], [Symbol, Symbol], [Symbol, Symbol, Symbol],
+                                       [Symbol, Symbol, Symbol, Symbol], [String]]), nil)
+        end,
         nil?: lambda do |receiver_return_type|
                 Annotation.new(
                   receiver_return_type,
@@ -259,13 +278,6 @@ module Analist
                  receiver_return_type
                )
              end,
-        errors: lambda do |receiver_return_type|
-                  Annotation.new(
-                    receiver_return_type,
-                    [],
-                    type: receiver_return_type[:type], on: :instance
-                  )
-                end,
         has_many: ->(_) { Annotation.new(nil, [Analist::Annotation::AnyArgs], nil) },
         path: lambda do |receiver_return_type|
                 Annotation.new(
@@ -347,7 +359,6 @@ module Analist
         require_dependency: ->(_) { Annotation.new(nil, [String], nil) },
         disable_ddl_transaction!: ->(_) { Annotation.new(nil, [], nil) },
         alias_method: ->(_) { Annotation.new(nil, [Symbol, Symbol], nil) }
-
       }
     end
 

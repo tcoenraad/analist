@@ -2,6 +2,7 @@
 
 RSpec.describe Analist::Annotator do
   subject(:annotation) { annotated_node.annotation }
+
   let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
   let(:schema) { Analist::SQL::Schema.new  }
   let(:headers) { Analist::HeaderTable.new }
@@ -442,6 +443,22 @@ RSpec.describe Analist::Annotator do
       end
       describe 'when from external resource' do
         let(:expression) { 'Timecop.freeze' }
+
+        it { expect(annotation).to eq Analist::Annotation::UNKNOWN_ANNOTATION_TYPE }
+      end
+    end
+    context '#include' do
+      describe 'when from standard libary' do
+        let(:expression) { 'include "gem"' }
+
+        it do
+          expect(annotation).to eq(
+            Analist::Annotation.new(nil, [Analist::Annotation::AnyClass], nil)
+          )
+        end
+      end
+      describe 'when from external resource' do
+        let(:expression) { 'config.include Klass' }
 
         it { expect(annotation).to eq Analist::Annotation::UNKNOWN_ANNOTATION_TYPE }
       end

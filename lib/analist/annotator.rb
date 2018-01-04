@@ -138,7 +138,8 @@ module Analist
         annotated_children = node.children.map { |n| annotate(n, resources) }
 
         if annotated_children.first.nil?
-          return AnnotatedNode.new(node, annotated_children, Annotation::UNKNOWN_ANNOTATION_TYPE)
+          return AnnotatedNode.new(node, annotated_children,
+                                   Analist::Annotations.send_annotations[method].call(type: nil))
         end
 
         receiver_return_type = annotated_children.first.annotation.return_type

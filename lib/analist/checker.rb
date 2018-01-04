@@ -33,12 +33,10 @@ module Analist
 
       return errors if node.annotation.return_type[:type] == Analist::Annotation::TypeUnknown
 
-      expected_args = node.annotation.args_types
-      expected_annotation = Analist::Annotation.new(node.annotation.receiver_type,
-                                                    expected_args, node.annotation.return_type)
+      expected_annotation = node.annotation
 
       actual_annotation = Analist::Annotation.new(
-        receiver&.annotation&.return_type, args.flat_map { |a| a.annotation.return_type[:type] },
+        receiver&.annotation&.return_type, args.flat_map { |a| a.annotation.return_type },
         node.annotation.return_type
       )
 
@@ -64,22 +62,29 @@ module Analist
     end
 
     def significant_difference?(annotation, other_annotation)
-      attrs = %i[receiver_type args_types return_type]
-      attrs.delete(:args_types) if [annotation, other_annotation].any? do |a|
-        a.args_types.any? { |t| t == Analist::Annotation::TypeUnknown } ||
-        a.args_types == [Analist::Annotation::AnyArgs]
-      end
-      %i[receiver_type return_type].each do |field|
-        attrs.delete(field) if annotation.send(field)[:type] == Analist::Annotation::TypeUnknown ||
-                               other_annotation.send(field)[:type] ==
-                               Analist::Annotation::TypeUnknown
+      return if [annotation.args_types, other_annotation.args_types].any? do |a|
+        a.any? { |t| t == { type: Analist::Annotation::TypeUnknown } } ||
+        a == [type: Analist::Annotation::AnyArgs]
       end
 
-      attrs.any? do |attr|
-        if annotation.send(attr).is_a?(Set)
-          return !annotation.send(attr).member?(other_annotation.send(attr))
-        end
-        annotation.send(attr) != other_annotation.send(attr)
+      return if %i[receiver_type return_type].any? do |field|
+        annotation.send(field)[:type] == Analist::Annotation::TypeUnknown ||
+        other_annotation.send(field)[:type] == Analist::Annotation::TypeUnknown
+      end
+
+      diff_args_types = significant_difference_on_args_types?(annotation.args_types,
+                                                              other_annotation.args_types)
+      diff_args_types || %i[receiver_type return_type].any? do |field|
+        annotation.send(field) != other_annotation.send(field)
+      end
+    end
+
+    def significant_difference_on_args_types?(args_types, other_args_types)
+      return !args_types.member?(other_args_types) if args_types.is_a?(Set)
+
+      return true if args_types.count != other_args_types.count
+      !args_types.zip(other_args_types).all? do |a, o|
+        a == o || (a[:type] == Analist::Annotation::AnyClass && o[:on] == :collection)
       end
     end
   end

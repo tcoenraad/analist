@@ -5,27 +5,27 @@ RSpec.describe Analist::Checker do
     described_class.check(Analist::Annotator.annotate(CommonHelpers.parse(expression), resources))
   end
 
+  let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
+  let(:schema) { Analist::SQL::Schema.new  }
+  let(:headers) { Analist::HeaderTable.new }
+  let(:symbol_table) { Analist::SymbolTable.new }
+
+  let(:exp_annotation) { errors.first.expected_annotation }
+  let(:act_annotation) { errors.first.actual_annotation }
+
   describe '#check' do
-    let(:resources) { { schema: schema, headers: headers, symbol_table: symbol_table } }
-    let(:schema) { Analist::SQL::Schema.new  }
-    let(:headers) { Analist::HeaderTable.new }
-    let(:symbol_table) { Analist::SymbolTable.new }
-
-    let(:exp_annotation) { errors.first.expected_annotation }
-    let(:act_annotation) { errors.first.actual_annotation }
-
     context 'when checking an unknown function call' do
       let(:expression) { 'unknown_function(arg)' }
 
       it { expect(errors).to be_empty }
     end
 
-    context 'when checking an unknown function call' do
+    context 'when checking an unknown function call with an invalid argument' do
       let(:expression) { 'JSON.parse(1 + "bla")' }
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+          'filename.rb:1 TypeError: `+` expected `Integer` args, actual `String`'
         )
       end
     end
@@ -38,6 +38,12 @@ RSpec.describe Analist::Checker do
 
     context 'when checking an unknown property on a primitive type' do
       let(:expression) { '1.unknown_property' }
+
+      it { expect(errors).to be_empty }
+    end
+
+    context 'when checking a known property on a unknown variable' do
+      let(:expression) { 'error.first.to_s' }
 
       it { expect(errors).to be_empty }
     end
@@ -77,8 +83,8 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 TypeError: expected `#<Set: {[Regexp, String], [Regexp], [String, ' \
-          'String]}>` args types, actual `[Integer, String]`'
+          'filename.rb:1 TypeError: `gsub` expected `Regexp,String or Regexp or String,String` '\
+          'args, actual `Integer,String`'
         )
       end
     end
@@ -102,7 +108,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 ArgumentError, `reverse` expected 0, actual: 1'
+          'filename.rb:1 ArgumentError, `reverse` expected 0 args, actual: 1'
         )
       end
     end
@@ -112,7 +118,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+          'filename.rb:1 TypeError: `+` expected `Integer` args, actual `String`'
         )
       end
     end
@@ -136,7 +142,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 ArgumentError, `map` expected 0, actual: 1'
+          'filename.rb:1 ArgumentError, `map` expected 0 args, actual: 1'
         )
       end
     end
@@ -153,7 +159,7 @@ RSpec.describe Analist::Checker do
 
         it do
           expect(errors.first.to_s).to eq(
-            'filename.rb:1 TypeError: expected `[String]` args types, actual `[Integer]`'
+            'filename.rb:1 TypeError: `+` expected `String` args, actual `Integer`'
           )
         end
       end
@@ -168,7 +174,7 @@ RSpec.describe Analist::Checker do
 
         it do
           expect(errors.first.to_s).to eq(
-            'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+            'filename.rb:1 TypeError: `+` expected `Integer` args, actual `String`'
           )
         end
       end
@@ -178,7 +184,7 @@ RSpec.describe Analist::Checker do
 
         it do
           expect(errors.first.to_s).to eq(
-            'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+            'filename.rb:1 TypeError: `+` expected `Integer` args, actual `String`'
           )
         end
       end
@@ -188,7 +194,7 @@ RSpec.describe Analist::Checker do
 
         it do
           expect(errors.first.to_s).to eq(
-            'filename.rb:1 TypeError: expected `[Integer]` args types, actual `[String]`'
+            'filename.rb:1 TypeError: `+` expected `Integer` args, actual `String`'
           )
         end
       end
@@ -211,7 +217,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 TypeError: expected `[String]` args types, actual `[Integer]`'
+          'filename.rb:1 TypeError: `+` expected `String` args, actual `Integer`'
         )
       end
     end
@@ -258,7 +264,42 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:7 TypeError: expected `[Integer]` args types, actual `[String]`'
+          'filename.rb:7 TypeError: `+` expected `Integer` args, actual `String`'
+        )
+      end
+    end
+  end
+
+  context 'when type checking an Annotation::AnyClass arg' do
+    describe 'when from standard libary' do
+      let(:expression) { 'include Klass' }
+
+      it { expect(errors).to be_empty }
+    end
+    describe 'when from standard libary' do
+      let(:expression) { 'include Klass + 3' }
+
+      it { expect(errors).to be_empty }
+    end
+  end
+
+  context 'when type checking a method with multiple accepting arg types' do
+    describe 'with wrong arg type' do
+      let(:expression) { '1.to_s("lorem ipsum")' }
+
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 TypeError: `to_s` expected `[] or Integer` args, actual `String`'
+        )
+      end
+    end
+
+    describe 'with wrong arg amount' do
+      let(:expression) { '1.to_s(1,2)' }
+
+      it do
+        expect(errors.first.to_s).to eq(
+          'filename.rb:1 ArgumentError, `to_s` expected 0 or 1 args, actual: 2'
         )
       end
     end
