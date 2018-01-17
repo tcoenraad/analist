@@ -11,6 +11,7 @@ Metrics/AbcSize:
     - 'lib/analist/annotations.rb'
     - 'lib/analist/annotator.rb'
     - 'lib/analist/checker.rb'
+    - 'lib/analist/errors.rb'
 
 Metrics/BlockLength:
   Exclude:
@@ -24,9 +25,10 @@ Metrics/MethodLength:
   Exclude:
     - 'lib/analist/annotator.rb'
     - 'lib/analist/checker.rb'
-    - 'lib/analist/explorer.rb'
-    - 'lib/analist/headerizer.rb'
     - 'lib/analist/cli.rb'
+    - 'lib/analist/explorer.rb'
+    - 'lib/analist/errors.rb'
+    - 'lib/analist/headerizer.rb'
 
 Metrics/ModuleLength:
   Exclude:

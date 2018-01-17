@@ -11,21 +11,39 @@ module Analist
     end
 
     def annotation_difference
-      diff = []
-      %i[receiver_type return_type args_types].each do |type|
+      diffs = []
+      %i[receiver_type return_type].each do |type|
         expected = expected_annotation.send(type)
         actual = actual_annotation.send(type)
         humanized_type = type.to_s.humanize(capitalize: false)
         if expected != actual
-          diff << "expected `#{expected.inspect}` #{humanized_type}, actual `#{actual.inspect}`"
+          diffs << "expected `#{expected[:type]}` #{humanized_type}, actual `#{actual[:type]}`"
         end
       end
-      diff
+
+      diffs.append(annotation_difference_on_args_types(expected_annotation.args_types,
+                                                       actual_annotation.args_types))
+    end
+
+    def annotation_difference_on_args_types(expected, actual)
+      return unless expected != actual
+
+      diff = 'expected `'
+      diff += if expected.is_a?(Set)
+                expected.map do |set|
+                  set.any? ? set.map { |at| at[:type] }.join(',') : '[]'
+                end.join(' or ')
+              else
+                expected.map { |arg_type| arg_type[:type] }.join(',')
+              end
+      diff + "` args, actual `#{actual.map { |args_types| args_types[:type] }.join(',')}`"
     end
 
     def to_s
+      _receiver, method, = @node.children
+
       "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} TypeError: "\
-        "#{annotation_difference.join(', ')}"
+        "`#{method}` #{annotation_difference.join(', ')}"
     end
   end
 
@@ -41,7 +59,8 @@ module Analist
     def to_s
       _receiver, method, = @node.children
       "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} ArgumentError, "\
-        "`#{method}` expected #{@expected_number_of_args}, actual: #{@actual_number_of_args}"
+        "`#{method}` expected #{@expected_number_of_args.join(' or ')} args, "\
+        "actual: #{@actual_number_of_args}"
     end
   end
 end

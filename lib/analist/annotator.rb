@@ -7,10 +7,6 @@ require 'analist/symbol_table'
 
 module Analist
   module Annotator
-    UNKNOWN_ANNOTATION_TYPE = Analist::Annotation.new(Analist::Annotation::TypeUnknown,
-                                                      [Analist::Annotation::AnyArgs],
-                                                      Analist::Annotation::TypeUnknown).freeze
-
     module_function
 
     def annotate(node, resources = {}) # rubocop:disable Metrics/CyclomaticComplexity
@@ -123,7 +119,7 @@ module Analist
       annotated_children = node.children.map { |n| annotate(n, resources) }
       AnnotatedNode.new(node, annotated_children,
                         resources[:symbol_table].retrieve(annotated_children.first) ||
-                        UNKNOWN_ANNOTATION_TYPE)
+                        Annotation::UNKNOWN_ANNOTATION_TYPE)
     end
 
     def annotate_module(node, resources)
@@ -142,7 +138,8 @@ module Analist
         annotated_children = node.children.map { |n| annotate(n, resources) }
 
         if annotated_children.first.nil?
-          return AnnotatedNode.new(node, annotated_children, UNKNOWN_ANNOTATION_TYPE)
+          return AnnotatedNode.new(node, annotated_children,
+                                   Analist::Annotations.send_annotations[method].call(type: nil))
         end
 
         receiver_return_type = annotated_children.first.annotation.return_type
