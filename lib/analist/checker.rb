@@ -62,30 +62,28 @@ module Analist
     end
 
     def significant_difference?(annotation, other_annotation)
-      return if [annotation.args_types, other_annotation.args_types].any? do |a|
-        a.any? { |t| t == { type: Analist::Annotation::TypeUnknown } } ||
-        a == [type: Analist::Annotation::AnyArgs]
-      end
+      return if [annotation, other_annotation].any? { |a| annotation_is_skippable?(a) }
 
-      return if %i[receiver_type return_type].any? do |field|
-        annotation.send(field)[:type] == Analist::Annotation::TypeUnknown ||
-        other_annotation.send(field)[:type] == Analist::Annotation::TypeUnknown
-      end
-
-      diff_args_types = significant_difference_on_args_types?(annotation.args_types,
-                                                              other_annotation.args_types)
-      diff_args_types || %i[receiver_type return_type].any? do |field|
-        annotation.send(field) != other_annotation.send(field)
-      end
+      significant_difference_on_args_types?(annotation.args_types, other_annotation.args_types) ||
+        annotation.receiver_type != other_annotation.receiver_type ||
+        annotation.return_type != other_annotation.return_type
     end
 
     def significant_difference_on_args_types?(args_types, other_args_types)
       return !args_types.member?(other_args_types) if args_types.is_a?(Set)
 
       return true if args_types.count != other_args_types.count
+
       !args_types.zip(other_args_types).all? do |a, o|
-        a == o || (a[:type] == Analist::Annotation::AnyClass && o[:on] == :collection)
+        a == o || o[:type] == Analist::Annotation::TypeUnknown ||
+          (a[:type] == Analist::Annotation::AnyClass && o[:on] == :collection)
       end
+    end
+
+    def annotation_is_skippable?(annotation)
+      annotation.args_types == [type: Analist::Annotation::AnyArgs] ||
+        annotation.receiver_type[:type] == Analist::Annotation::TypeUnknown ||
+        annotation.return_type[:type] == Analist::Annotation::TypeUnknown
     end
   end
 end
