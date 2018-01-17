@@ -14,9 +14,7 @@ module Analist
     def self.initialize_args_types(args_types)
       if args_types.is_a?(Set)
         return Set.new(args_types.map do |set|
-          set.map do |arg_type|
-            arg_type.is_a?(Hash) ? arg_type : { type: arg_type }
-          end
+          initialize_args_types(set)
         end)
       end
       args_types.map { |arg_type| arg_type.is_a?(Hash) ? arg_type : { type: arg_type } }
