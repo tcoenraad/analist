@@ -15,7 +15,7 @@ module Analist
 
       def return_type # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
         return unless @headers
-        return mutation_type if @resources[:symbol_table].scope.last == :execute
+        return mutation_type if mutation_type
         return unless (last_statement =
                          @headers.retrieve_method(method_name, klass_name)&.children&.last)
         lookup_chain = @resources.fetch(:lookup_chain, [])

@@ -253,7 +253,7 @@ module Analist
                 end,
         any?: lambda do |receiver_return_type|
                 Annotation.new(
-                  receiver_return_type,
+                  { type: receiver_return_type[:type], on: :collection },
                   [],
                   Analist::Annotation::Boolean
                 )
