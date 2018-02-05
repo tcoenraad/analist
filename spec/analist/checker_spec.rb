@@ -108,7 +108,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 ArgumentError, `reverse` expected 0 args, actual: 1'
+          'filename.rb:1 ArgumentError: `reverse` expected 0 args, actual: 1'
         )
       end
     end
@@ -142,7 +142,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 ArgumentError, `map` expected 0 args, actual: 1'
+          'filename.rb:1 ArgumentError: `map` expected 0 args, actual: 1'
         )
       end
     end
@@ -299,7 +299,7 @@ RSpec.describe Analist::Checker do
 
       it do
         expect(errors.first.to_s).to eq(
-          'filename.rb:1 ArgumentError, `to_s` expected 0 or 1 args, actual: 2'
+          'filename.rb:1 ArgumentError: `to_s` expected 0 or 1 args, actual: 2'
         )
       end
     end
