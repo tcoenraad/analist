@@ -58,7 +58,7 @@ module Analist
 
     def to_s
       _receiver, method, = @node.children
-      "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} ArgumentError, "\
+      "#{Analist::FileFinder.relative_path(@node.filename)}:#{@node.loc.line} ArgumentError: "\
         "`#{method}` expected #{@expected_number_of_args.join(' or ')} args, "\
         "actual: #{@actual_number_of_args}"
     end
