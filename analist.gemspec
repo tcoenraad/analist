@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'activesupport', '~> 5.0'
   spec.add_runtime_dependency 'colorize', '~> 0.8.1'
-  spec.add_runtime_dependency 'parser', '= 2.4.0.0'
+  spec.add_runtime_dependency 'parser', '~> 2.4.0.0'
   spec.add_runtime_dependency 'pg_query', '~> 0.13.5'
 
   spec.add_development_dependency 'guard'
@@ -32,5 +32,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'rubocop'
   spec.add_development_dependency 'rubocop-rspec'
+  spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'terminal-notifier-guard'
 end
